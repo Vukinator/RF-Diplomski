@@ -37,7 +37,7 @@ employ1= data1$emplrel
 left.right= data$lrscale
 left.right1= data1$lrscale
 householdmembers= data$hhmmb
-householdmembers1= data$hhmmb
+householdmembers1= data1$hhmmb
 netusoft= data$netusoft
 netuseoft1= data1$netusoft
 netustm= data$netustm
@@ -51,8 +51,11 @@ closetoparent1= data1$closepnt
 jobsatisfaction= data$stfmjob
 jobasatisfaction1= data1$stfmjob
 politics.time= data$nwspol
-politics.time1= data$nwspol
-
+politics.time1= data1$nwspol
+govtisfaction= data$stfgov
+govtisfaction1= data1$stfgov
+urban.rural= data$domicil
+urban.rural1= data1$domicil
 # for rbin(), the data must be a data frame
 age.all= rbind(as.data.frame(c(age, age1)))
 closeparent= rbind(as.data.frame(c(closetoparent, closetoparent1)))
@@ -74,14 +77,18 @@ religios= rbind(as.data.frame(c(rlgs, rlgs1)))
 safetyafdark= rbind(as.data.frame(c(safetydark, safetydark1)))
 satisfaction= rbind(as.data.frame(c(stf, stf1)))
 voted= rbind(as.data.frame(c(vote, vote1)))
+govsatis= rbind(as.data.frame(c(govtisfaction, govtisfaction1)))
+domicil= rbind(as.data.frame(c(urban.rural, urban.rural1)))
 # make a dataframe
-
+ess= cbind(age.all, closeparent, country, education, employment, genders, 
+           housemembers, jobtisfy, pol.scale, net.minutes, affairs.minutes,
+           trust.pol, trust.ppl, prayer, rlgsattendance, religios, safetyafdark,
+           satisfaction, voted, govsatis, domicil)
 # ECON VARS
 gov.in.gdp=
 unemployment.rate=
-
 gdp.pc= data.frame(cntrys.vec,
-                   gdp= )
+                     gdp= )
 efi= read.csv("EFI Heritage.csv")
 efi.sorted= efi[,3:6]
 cpi= c(76, 76, 44, 47, 57, 54, 75, 85, 69, 56, 80,
@@ -103,11 +110,3 @@ findata= cbind(cntry, stf ,gender, age, edu, poltrust, ppltrust, pray, rlgatnd,
                rlgs, efi) # just to see how does it look like
 
 poverty.rate= read.csv("Poverty rate OECD.csv")
-
-
-
-
-
-
-
-
