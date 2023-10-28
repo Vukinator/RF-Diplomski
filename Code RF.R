@@ -84,6 +84,24 @@ ess= cbind(age.all, closeparent, country, education, employment, genders,
            housemembers, jobtisfy, pol.scale, net.minutes, affairs.minutes,
            trust.pol, trust.ppl, prayer, rlgsattendance, religios, safetyafdark,
            satisfaction, voted, govsatis, domicil)
+names(ess)= c("age", "parent.close", "country", "edu", "employ", "gender",
+              "house.members", "jobtisfy", "pol.spectre", "net.use", "pol.time",
+              "pol.trust","people.trust", "prayer", "rel.attend", "religious",
+              "safety", "satisfaction", "voted", "govtisfaction", "urbanized")
+library(randomForest)
+library(tidymodels)
+# you must to mutate the efi and other econ vars!!!
+#splitting the ess data frame
+set.seed(13472841)
+splitting= sample(1:3, size=nrow(ess), prob=c(0.7,0.2,0.1), replace = TRUE)
+ess.train= ess[splitting==1, ]
+ess.test= ess[splitting==2, ]
+ess.valid= ess[splitting==3, ]
+
+rf.model1= randomForest(ess.train$satisfaction~., data= ess.train, proximity= T)
+# output= Error: cannot allocate vector of size 13.0 Gb
+
+
 # ECON VARS
 gov.in.gdp=
 unemployment.rate=
@@ -109,4 +127,4 @@ cntrys.vec= c("AT", "BE", "BU", "CRO", "CYP", "CZE", "EST", "FIN", "FRA", "GEO",
 findata= cbind(cntry, stf ,gender, age, edu, poltrust, ppltrust, pray, rlgatnd,
                rlgs, efi) # just to see how does it look like
 
-poverty.rate= read.csv("Poverty rate OECD.csv")
+poverty.rate= read.csv("Pove
