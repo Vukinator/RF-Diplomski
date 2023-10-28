@@ -101,6 +101,9 @@ ess.valid= ess[splitting==3, ]
 rf.model1= randomForest(ess.train$satisfaction~., data= ess.train, proximity= T)
 # output= Error: cannot allocate vector of size 13.0 Gb
 
+ranger.rf= ranger::ranger(ess.train$satisfaction~., data= ess.train)
+### check it out at home!!!
+
 
 # ECON VARS
 gov.in.gdp=
@@ -127,4 +130,6 @@ cntrys.vec= c("AT", "BE", "BU", "CRO", "CYP", "CZE", "EST", "FIN", "FRA", "GEO",
 findata= cbind(cntry, stf ,gender, age, edu, poltrust, ppltrust, pray, rlgatnd,
                rlgs, efi) # just to see how does it look like
 
-poverty.rate= read.csv("Pove
+poverty.rate= read.csv("Poverty rate OECD.csv")
+
+
