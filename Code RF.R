@@ -178,7 +178,7 @@ ess.test= ess[splitting==2, ]
 ess.valid= ess[splitting==3, ]
 
 rf.model1= randomForest(ess.train$satisfaction~., data= ess.train, proximity= T)
-# output= Error: cannot allocate vector of size 13.0 Gb
+# output= Error: cannot allocate vector of size 13.0 Gb (library)
 
 ranger.rf= ranger::ranger(ess.train$satisfaction~., data= ess.train)
 ### check it out at home!!!
