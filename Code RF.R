@@ -56,7 +56,8 @@ govtisfaction= data$stfgov
 govtisfaction1= data1$stfgov
 urban.rural= data$domicil
 urban.rural1= data1$domicil
-# for rbin(), the data must be a data frame
+
+# for rbind(), the data must be a data frame
 age.all= rbind(as.data.frame(c(age, age1)))
 closeparent= rbind(as.data.frame(c(closetoparent, closetoparent1)))
 country= rbind(as.data.frame(c(cntry, cntry1)))
@@ -79,6 +80,17 @@ satisfaction= rbind(as.data.frame(c(stf, stf1)))
 voted= rbind(as.data.frame(c(vote, vote1)))
 govsatis= rbind(as.data.frame(c(govtisfaction, govtisfaction1)))
 domicil= rbind(as.data.frame(c(urban.rural, urban.rural1)))
+
+rm(vote1, vote, urban.rural1,urban.rural, stf1, stf, safetydark, safetydark1,
+   rlgs1, rlgs, rlgtand1, rlgatnd, pray1, pray, ppltrust, ppltrust1, poltrust,
+   poltrust1, politics.time, politics.time1, netustm, netustm1, netuseoft1, netusoft,
+   left.right, left.right1, jobsatisfaction, jobasatisfaction1, householdmembers,
+   householdmembers1, govtisfaction, govtisfaction1, gender1, gender, employ, employ1,
+   edu1, edu, denom1, denom, cntry1, cntry, closetoparent, closetoparent1, age1, age, 
+   voted, trust.ppl, trust.pol, satisfaction, safetyafdark, rlgsattendance, religios,
+   prayer, pol.scale, net.minutes, jobtisfy, housemembers,govsatis, genders, employment,
+   education, domicil, closeparent, age.all, affairs.minutes, rlgatnd1, country)
+
 # make a dataframe
 ess= cbind(age.all, closeparent, country, education, employment, genders, 
            housemembers, jobtisfy, pol.scale, net.minutes, affairs.minutes,
@@ -88,10 +100,77 @@ names(ess)= c("age", "parent.close", "country", "edu", "employ", "gender",
               "house.members", "jobtisfy", "pol.spectre", "net.use", "pol.time",
               "pol.trust","people.trust", "prayer", "rel.attend", "religious",
               "safety", "satisfaction", "voted", "govtisfaction", "urbanized")
+ess= ess[order(ess$country), ] # optional alphabetical ordering
+unique(ess$country) # all the states
+ess$efi= if (country== "AT"){
+  73.3 else
+    if(country== "BE"){
+      68.9 else
+        if(country== "BG"){
+          62.2 else
+            if(country== "CH"){
+              82 else
+                if(country== "CY"){
+                  70.1 else
+                    if(country== "CZ"){
+                      74.8 else
+                        if(country== "DE"){
+                          78.3 else
+                            if(country== "EE"){
+                              77.7 else
+                                if(country= "ES"){
+                                  66.9 else
+                                    if(country=="FI"){
+                                      75.7 else
+                                        if(country== "FR"){
+                                          66 else
+                                            if(country== "GB"){
+                                              79.3 else 
+                                                if(country== "GR"){
+                                                  59.9 else 
+                                                    if(country== "HR"){
+                                                      62.2 else
+                                                        if(country== "HU"){
+                                                          66.4 else
+                                                            if(country== "IE"){
+                                                              80.9 else 
+                                                                if(country== "IL"){
+                                                                  74 else 
+                                                                    if(country== "IS"){
+                                                                      77.1 else
+                                                                        if(country== "IT"){
+                                                                          63.8
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                  }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+for(unique(i) in ess$country){
+  ess$efi= c()
+} ### maybe the alternative
+
+library(tidyverse)
 library(randomForest)
 library(tidymodels)
-# you must to mutate the efi and other econ vars!!!
+
 #splitting the ess data frame
+
 set.seed(13472841)
 splitting= sample(1:3, size=nrow(ess), prob=c(0.7,0.2,0.1), replace = TRUE)
 ess.train= ess[splitting==1, ]
@@ -111,10 +190,8 @@ unemployment.rate=
 gdp.pc= data.frame(cntrys.vec,
                      gdp= )
 efi= read.csv("EFI Heritage.csv")
-efi.sorted= efi[,3:6]
-cpi= c(76, 76, 44, 47, 57, 54, 75, 85, 69, 56, 80,
-       50, 44, 75, 72, 60, 53, 57, 60, 45, 82, 35, 84,
-       56, 61, 38, 60, 49, 62, 85, 85, 77)
+efi2020= efi %>% filter(Index.Year==2020) %>% select(Name, Overall.Score)
+
 wb= read.csv("WB1 gdp per capita.csv")
 wb2= read.csv("WB2 gdp per capita.csv")
 #wb & wb2 are the same data frames
@@ -127,9 +204,5 @@ cntrys.vec= c("AT", "BE", "BU", "CRO", "CYP", "CZE", "EST", "FIN", "FRA", "GEO",
               "GER", "GRE", "HUN", "ICE", "IRE", "ISR", "ITA", "LAT", "LIT", "MNG",
               "NED", "NRMAC", "NOR", "POL", "POR", "SRB", "SVK", "SLO", "ESP",
               "SWE", "SCH", "UK")
-findata= cbind(cntry, stf ,gender, age, edu, poltrust, ppltrust, pray, rlgatnd,
-               rlgs, efi) # just to see how does it look like
 
 poverty.rate= read.csv("Poverty rate OECD.csv")
-
-
