@@ -599,7 +599,7 @@ library(tidyverse)
 library(randomForest)
 library(tidymodels)
 
-#BOOTSTRAP, SPLIT
+#BOOTSTRAP
 set.seed(13472841)
 splitting= sample(1:3, size=nrow(ess), prob=c(0.7,0.2,0.1), replace = TRUE)
 ess.train= ess[splitting==1, ]
