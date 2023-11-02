@@ -623,4 +623,4 @@ rf.model2= randomForest(as.factor(ess.train$satisfaction)~.,
 
 # do the breaks and merge it into the ess.train
 # then do the interactions and merge them into the ess.train (for example, do the interactions with government satisfaction and gdp per capita etc.)
-ess.train$satisfaction.cat= cut(ess.train, breaks= 3, )
+ess.train$satisfaction.cat= cut(ess.train, breaks= 3, # to be continued...)
