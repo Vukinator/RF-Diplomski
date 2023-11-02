@@ -551,6 +551,8 @@ sk$gini= NA
 
 ess= rbind(at, be, bg, ch, cy, cz, de, ee, es, fi, fr, gb, gr, hr, hu, ie, il,
            is, it, lt, lv, me, mk, nl, no, pl, pt, rs, se, si, sk)
+rm(at, be, bg, ch, cy, cz, de, ee, es, fi, fr, gb, gr, hr, hu, ie, il, is, it,
+   lt, lv, me, mk, nl, no, pl, pt, rs, se, si, sk)
 # column names of the two data frames don’t match
 # "Error in match.names(clabs, names(xi)) : names do not match previous names"
 identical(names(at), names(cy)) # CYPRUS IS THE INTRUDER!!!! AAAAAAA
@@ -591,25 +593,34 @@ ess$efi= if(ess$country== "AT"){
                                                                                                           66.8} else{
                                                                                                             NA}
 # if() checks only 1 element, not a vector!!!
-### REMEMBER: FOR LOOPING THROHGH VECTORS (NOT SINGLE VALUES) YOU USE for() loop!
+### REMEMBER: FOR LOOPING THROGH VECTORS (NOT SINGLE VALUES) YOU USE for() loop!
 
 
 #LIBRARY
 library(tidyverse)
 library(randomForest)
+library(ranger)
 library(tidymodels)
 
-#BOOTSTRAP
+#BOOTSTRAP, SPLIT
 set.seed(13472841)
-splitting= sample(1:3, size=nrow(ess), prob=c(0.7,0.2,0.1), replace = TRUE)
+splitting= sample(1:3, size=nrow(ess), prob=c(0.7,0.2,0.1), replace = T)
 ess.train= ess[splitting==1, ]
 ess.test= ess[splitting==2, ]
 ess.valid= ess[splitting==3, ]
 
 #RANDOM FOREST
-rf.model1= randomForest(ess.train$satisfaction~., data= ess.train, proximity= T)
-# output= Error: cannot allocate vector of size 13.0 Gb (library)
+### what we have to do is to differently code 999's and stuff like that
+### (for classification of course)
 
-ranger.rf= ranger::ranger(ess.train$satisfaction~., data= ess.train)
-### check it out at home!!!
+rf.model1= randomForest(ess.train$satisfaction~., data= ess.train, na.action = na.omit)
+# regression type; what we want is classification
 
+rf.model2= randomForest(as.factor(ess.train$satisfaction)~., 
+                                  data= ess.train,
+                                  na.action= na.omit)
+# classification; bagging done!
+
+# do the breaks and merge it into the ess.train
+# then do the interactions and merge them into the ess.train (for example, do the interactions with government satisfaction and gdp per capita etc.)
+ess.train$satisfaction.cat= cut(ess.train, breaks= 3, )
