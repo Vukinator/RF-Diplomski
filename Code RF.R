@@ -595,7 +595,7 @@ ess$efi= if(ess$country== "AT"){
 # if() checks only 1 element, not a vector!!!
 ### REMEMBER: FOR LOOPING THROGH VECTORS (NOT SINGLE VALUES) YOU USE for() loop!
 
-
+ess$edu= ifelse(ess$edu== 77 | ess$edu== 88 | ess$edu== 99, NA, as.factor(ess$edu))
 ess$pol.time= ifelse(ess$pol.time== 7777 | ess$pol.time== 8888 | ess$pol.time== 9999, NA, ess$pol.time)
 ess$pol.trust= ifelse(ess$pol.trust== 77 | ess$pol.trust== 88 | ess$pol.trust== 99, NA, ess$pol.trust)
 ess$people.trust= ifelse(ess$people.trust== 77 | ess$people.trust == 88 | ess$people.trust= 99, NA, ess$people.trust)
