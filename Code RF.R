@@ -596,20 +596,32 @@ ess$efi= if(ess$country== "AT"){
 ### REMEMBER: FOR LOOPING THROGH VECTORS (NOT SINGLE VALUES) YOU USE for() loop!
 
 
-#LIBRARY
+ess$pol.time= ifelse(ess$pol.time== 7777 | ess$pol.time== 8888 | ess$pol.time== 9999, NA, ess$pol.time)
+ess$pol.trust= ifelse(ess$pol.trust== 77 | ess$pol.trust== 88 | ess$pol.trust== 99, NA, ess$pol.trust)
+ess$people.trust= ifelse(ess$people.trust== 77 | ess$people.trust == 88 | ess$people.trust= 99, NA, ess$people.trust)
+ess$prayer= as.factor(ifelse(ess$prayer== 77 | ess$prayer== 88 | ess$prayer== 99, NA, as.factor(ess$prayer)))
+ess$rel.attend= ifelse(ess$rel.attend== 77 | ess$rel.attend== 88 | ess$rel.attend= 99, NA, as.factor(ess$prayer))
+ess$religious= ifelse(ess$religious== 77 | ess$religious== 88 | ess$religious== 99, NA, ess$religious)
+ess$safety= ifelse(ess$safety== 7 | ess$safety== 8 | ess$religious== 9, NA, as.factor(ess$safety))
+ess$satisfaction= ifelse(ess$satisfaction== 77 | ess$satisfaction== 88 | ess$satisfaction== 99, NA, ess$satisfaction)
+ess$govtisfaction= ifelse(ess$govtisfaction== 77 | ess$govtisfaction== 88 | ess$govtisfaction== 99, NA, ess$govtisfaction)
+ess$urbanized== ifelse(ess$urbanized== 7 | ess$urbanized== 8 | ess$urbanized== 9, NA, ess$urbanized)
+
+
+LIBRARY
 library(tidyverse)
 library(randomForest)
 library(ranger)
 library(tidymodels)
 
-#BOOTSTRAP, SPLIT
+BOOTSTRAP, SPLIT
 set.seed(13472841)
 splitting= sample(1:3, size=nrow(ess), prob=c(0.7,0.2,0.1), replace = T)
 ess.train= ess[splitting==1, ]
 ess.test= ess[splitting==2, ]
 ess.valid= ess[splitting==3, ]
 
-#RANDOM FOREST
+RANDOM FOREST
 ### what we have to do is to differently code 999's and stuff like that
 ### (for classification of course)
 
