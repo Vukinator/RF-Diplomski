@@ -549,6 +549,10 @@ pt$gini= 34.7
 si$gini= 24
 sk$gini= NA
 
+identical(names(at), names(cy)) # CYPRUS IS THE INTRUDER!!!! AAAAAAA
+which(!identical(names(at), names(cy))) # 1!!!
+names(cy)= names(at)
+
 ess= rbind(at, be, bg, ch, cy, cz, de, ee, es, fi, fr, gb, gr, hr, hu, ie, il,
            is, it, lt, lv, me, mk, nl, no, pl, pt, rs, se, si, sk)
 rm(at, be, bg, ch, cy, cz, de, ee, es, fi, fr, gb, gr, hr, hu, ie, il, is, it,
@@ -559,11 +563,8 @@ identical(names(at), names(cy)) # CYPRUS IS THE INTRUDER!!!! AAAAAAA
 which(!identical(names(at), names(cy))) # 1!!!
 names(cy)= names(at) # because all the others are the same as AT
 
-as.factor(ess$country) # it's easier for us to make country a factor, and then merge the efi values
-ess$country= as.factor(ess$country)
-is.factor(ess$country) # makes no difference; still "Error in if (ess$country == "AT") { : the condition has length > 1"
 
-ess$efi= if(ess$country== "AT"){
+"ess$efi= if(ess$country== "AT"){
   73.3} else if(ess$country== "BE"){
       68.9} else if(ess$country== "BG"){
           62.2} else if(ess$country== "CH"){
@@ -591,48 +592,46 @@ ess$efi= if(ess$country== "AT"){
                                                                                                   67} else if(ess$country== "SI"){
                                                                                                       67.8} else if(ess$country== "SK"){
                                                                                                           66.8} else{
-                                                                                                            NA}
+                                                                                                            NA}"
 # if() checks only 1 element, not a vector!!!
 ### REMEMBER: FOR LOOPING THROGH VECTORS (NOT SINGLE VALUES) YOU USE for() loop!
 
-ess$edu= ifelse(ess$edu== 77 | ess$edu== 88 | ess$edu== 99, NA, as.factor(ess$edu))
-ess$pol.time= ifelse(ess$pol.time== 7777 | ess$pol.time== 8888 | ess$pol.time== 9999, NA, ess$pol.time)
-ess$pol.trust= ifelse(ess$pol.trust== 77 | ess$pol.trust== 88 | ess$pol.trust== 99, NA, ess$pol.trust)
-ess$people.trust= ifelse(ess$people.trust== 77 | ess$people.trust == 88 | ess$people.trust= 99, NA, ess$people.trust)
-ess$prayer= as.factor(ifelse(ess$prayer== 77 | ess$prayer== 88 | ess$prayer== 99, NA, as.factor(ess$prayer)))
-ess$rel.attend= ifelse(ess$rel.attend== 77 | ess$rel.attend== 88 | ess$rel.attend= 99, NA, as.factor(ess$prayer))
-ess$religious= ifelse(ess$religious== 77 | ess$religious== 88 | ess$religious== 99, NA, ess$religious)
-ess$safety= ifelse(ess$safety== 7 | ess$safety== 8 | ess$religious== 9, NA, as.factor(ess$safety))
-ess$satisfaction= ifelse(ess$satisfaction== 77 | ess$satisfaction== 88 | ess$satisfaction== 99, NA, ess$satisfaction)
-ess$govtisfaction= ifelse(ess$govtisfaction== 77 | ess$govtisfaction== 88 | ess$govtisfaction== 99, NA, ess$govtisfaction)
-ess$urbanized== ifelse(ess$urbanized== 7 | ess$urbanized== 8 | ess$urbanized== 9, NA, ess$urbanized)
 
-
-LIBRARY
+#LIBRARY
 library(tidyverse)
 library(randomForest)
 library(ranger)
 library(tidymodels)
+library(party)
 
-BOOTSTRAP, SPLIT
+summary(ess)
+# ess[, as.numeric(c(22:33))]
+# probably throwing out "voted" variable.
+ess$age= ifelse(ess$age==999, NA, as.numeric(ess$age))
+ess$parent.close= ifelse(ess$parent.close== 6 | ess$parent.close== 7 | ess$parent.close== 8 | ess$parent.close== 9, NA, as.factor(ess$parent.close))
+ess$edu= ifelse(ess$edu==77 | ess$edu==88 | ess$edu== 99, NA, ess$edu)
+# additional edu factor
+ess$edu= as.factor(ess$edu)
+ess$employ= ifelse(ess$employ== 6 | ess$employ== 7 | ess$employ==8 | ess$employ==9, NA, as.factor(ess$employ))
+ess$gender= ifelse(ess$gender==9, NA, as.factor(ess$gender))
+ess$house.members= ifelse(ess$house.members== 77 | ess$house.members== 88 | ess$house.members== 99, NA, as.numeric(ess$house.members))
+ess$jobtisfy= ifelse(ess$jobtisfy== 66 | ess$jobtisfy== 77 | ess$jobtisfy== 88 | ess$jobtisfy== 99, NA, as.numeric(ess$jobtisfy))
+ess$pol.spectre= ifelse(ess$pol.spectre== 77 | ess$pol.spectre== 88 | ess$polspectre== 99, NA, as.factor(ess$pol.spectre))
+ess$net.use= ifelse(ess$net.use== 6666 | ess$net.use== 7777 | ess$net.use== 8888 | ess$net.use== 9999, NA, as.numeric(ess$net.use))
+ess$pol.time= ifelse(ess$pol.time== 7777 | ess$pol.time== 8888 | ess$pol.time== 9999, NA, as.numeric(ess$pol.time))
+ess$pol.trust= ifelse(ess$pol.trust== 77 | ess$pol.trust== 88 | ess$pol.trust== 99, NA, as.numeric(ess$pol.trust))
+ess$people.trust= ifelse(ess$people.trust== 77 | ess$people.trust == 88 | ess$people.trust= 99, NA, ess$people.trust)
+ess$prayer= as.factor(ifelse(ess$prayer== 77 | ess$prayer== 88 | ess$prayer== 99, NA, as.factor(ess$prayer)))
+ess$rel.attend= ifelse(ess$rel.attend== 77 | ess$rel.attend== 88 | ess$rel.attend= 99, NA, as.factor(ess$rel.attend))
+ess$religious= ifelse(ess$religious== 77 | ess$religious== 88 | ess$religious== 99, NA, as.numeric(ess$religious))
+ess$safety= ifelse(ess$safety== 7 | ess$safety== 8 | ess$religious== 9, NA, as.factor(ess$safety))
+ess$satisfaction= ifelse(ess$satisfaction== 77 | ess$satisfaction== 88 | ess$satisfaction== 99, NA, as.numeric(ess$satisfaction))
+ess$govtisfaction= ifelse(ess$govtisfaction== 77 | ess$govtisfaction== 88 | ess$govtisfaction== 99, NA, as.numeric(ess$govtisfaction))
+ess$urbanized== ifelse(ess$urbanized== 7 | ess$urbanized== 8 | ess$urbanized== 9, NA, as.factor(ess$urbanized))
+
 set.seed(13472841)
 splitting= sample(1:3, size=nrow(ess), prob=c(0.7,0.2,0.1), replace = T)
 ess.train= ess[splitting==1, ]
 ess.test= ess[splitting==2, ]
 ess.valid= ess[splitting==3, ]
-
-RANDOM FOREST
-### what we have to do is to differently code 999's and stuff like that
-### (for classification of course)
-
-rf.model1= randomForest(ess.train$satisfaction~., data= ess.train, na.action = na.omit)
-# regression type; what we want is classification
-
-rf.model2= randomForest(as.factor(ess.train$satisfaction)~., 
-                                  data= ess.train,
-                                  na.action= na.omit)
-# classification; bagging done!
-
-# do the breaks and merge it into the ess.train
-# then do the interactions and merge them into the ess.train (for example, do the interactions with government satisfaction and gdp per capita etc.)
-ess.train$satisfaction.cat= cut(ess.train, breaks= 3, # to be continued...)
+# do the cross vals for each set
