@@ -23,6 +23,22 @@ stf= data$stflife
 stf1= data1$stflife
 # criteria variable
 
+work.organize= data$wkdcorga
+work.organize1= data1$wkdcorga
+work.tired= data$trdawrk # factor
+work.tired1= data1$trdawrk # factor
+safe.income= data$hincfel
+safe.income1= data1$hincfel
+job.preventing.time= data$jbprtfp
+job.preventing.time1= data1$jbprtfp
+job.decisions= data$dcsfwrka
+job.decisions1= data1$dcsfwrka
+health= data$health
+health1= data1$health
+work.time= data$wkhtot
+work.time1= data1$wkhtot
+house.income= data$hinctnta
+house.income1= data1$hinctnta
 cntry= data$cntry
 cntry1= data1$cntry
 age= data$agea
