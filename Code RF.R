@@ -50,6 +50,8 @@ edu1= data1$eisced
 # ann.inc from world bank data 2020 (GDP per capita)
 # political affiliation not found
 
+priv.people= data$inprdsc
+priv.people1= data1$inprds
 poltrust= data$trstplt
 poltrust1= data1$trstplt
 ppltrust= data$ppltrst
