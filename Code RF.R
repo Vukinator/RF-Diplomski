@@ -88,6 +88,7 @@ govtisfaction= data$stfgov
 govtisfaction1= data1$stfgov
 urban.rural= data$domicil
 urban.rural1= data1$domicil
+impfree!!! # how important it is to be free and make own decisions
 
 # for rbind(), the data must be a data frame
 age.all= rbind(as.data.frame(c(age, age1)))
