@@ -82,13 +82,14 @@ closetoparent= data$closepnt # van
 closetoparent1= data1$closepnt # van
 jobsatisfaction= data$stfmjob # ne znam fakat ono; dal da to maknem van zbog onih varijabli o radu ili da samo ovu zadržim?
 jobasatisfaction1= data1$stfmjob # ne znam fakat ono; dal da to maknem van zbog onih varijabli o radu ili da samo ovu zadržim?
-politics.time= data$nwspol
-politics.time1= data1$nwspol
-govtisfaction= data$stfgov
+politics.time= data$nwspol # ne ulazi u analizu
+politics.time1= data1$nwspol # ne ulazi u analizu
+govtisfaction= data$stfgov 
 govtisfaction1= data1$stfgov
 urban.rural= data$domicil
 urban.rural1= data1$domicil
-impfree!!! # how important it is to be free and make own decisions
+freedom.importance= data$impfree
+freedom.importance1= data1$impfree!!! # how important it is to be free and make own decisions
 
 # for rbind(), the data must be a data frame
 age.all= rbind(as.data.frame(c(age, age1)))
@@ -110,19 +111,20 @@ rlgsattendance= rbind(as.data.frame(c(rlgatnd, rlgatnd1)))
 religios= rbind(as.data.frame(c(rlgs, rlgs1)))
 safetyafdark= rbind(as.data.frame(c(safetydark, safetydark1)))
 satisfaction= rbind(as.data.frame(c(stf, stf1)))
-voted= rbind(as.data.frame(c(vote, vote1)))
-govsatis= rbind(as.data.frame(c(govtisfaction, govtisfaction1)))
+voted= rbind(as.data.frame(c(vote, vote1))) # ne ulazi u analizu
+govsatis= rbind(as.data.frame(c(govtisfaction, govtisfaction1))) # postoje li značajne razlike u ovome i government expenditure in GDP?
 domicil= rbind(as.data.frame(c(urban.rural, urban.rural1)))
+freedom.import= rbind(as.data.frame(c(freedom.importance, freedom.importance1)))
 
 ess= cbind(age.all, closeparent, country, education, employment, genders, 
            housemembers, jobtisfy, pol.scale, net.minutes, affairs.minutes,
            trust.pol, trust.ppl, prayer, rlgsattendance, religios, safetyafdark,
-           satisfaction, voted, govsatis, domicil)
+           satisfaction, voted, govsatis, domicil, freedom.import)
 
 names(ess)= c("age", "parent.close", "country", "edu", "employ", "gender",
               "house.members", "jobtisfy", "pol.spectre", "net.use", "pol.time",
               "pol.trust","people.trust", "prayer", "rel.attend", "religious",
-              "safety", "satisfaction", "voted", "govtisfaction", "urbanized")
+              "safety", "satisfaction", "voted", "govtisfaction", "urbanized", "free.im")
 
 rm(vote1, vote, urban.rural1,urban.rural, stf1, stf, safetydark, safetydark1,
    rlgs1, rlgs, rlgtand1, rlgatnd, pray1, pray, ppltrust, ppltrust1, poltrust,
