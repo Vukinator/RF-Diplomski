@@ -20,7 +20,7 @@ health= sve$health
 health[health> 5]= NA
 health= as.factor(health) # da ili ne? ja bi rekel da; konzultacije
 stflife= as.integer(sve$stflife)
-stflife[stflife>10]= NA
+stflife[stflife>10 | stflife== NA]= floor(mean(stflife, na.rm= T))
 stflife= cut(stflife, 
              breaks= c(0, 3, 5, 7, 9, 10),
              labels= c(1, 2, 3, 4, 5),
