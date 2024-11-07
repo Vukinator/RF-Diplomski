@@ -1,658 +1,131 @@
-# Data
-data1= read.csv("ESS10.csv") # 22 countries
-# do the same with data1 as with data                              
-# just rbind and that's it
-
-data= read.csv("ESS10SC.csv") # 9 countries
-#rbind for all!!!
-
-gdppc.gini=  read.csv("GDPpc, GINI, WB 2020.csv")
-all.econs= read.csv("All econ wb.csv")
-all.econs= all.econs[-c(249:253),]
-governance.vars= read.csv("Governance wb.csv")
-govs= governance.vars[-c(156:160),]
-efi= read.csv("EFI Heritage.csv")
-efi2020= efi %>% filter(Index.Year==2020) %>% select(Name, Overall.Score)
-wb= read.csv("WB1 gdp per capita.csv")
-wb2= read.csv("WB2 gdp per capita.csv")
-govexp.data= "https://data.imf.org/?sk=a0867067-d23c-4ebc-ad23-d3b015045405"
-imf.govexp= readxl::read_excel("IMF govexps.xlsx")
-
-#Sorting, filtering, choosing etc
-stf= data$stflife
-stf1= data1$stflife
-# criteria variable
-
-work.organize= data$wkdcorga
-work.organize1= data1$wkdcorga
-work.tired= data$trdawrk # factor
-work.tired1= data1$trdawrk # factor
-safe.income= data$hincfel
-safe.income1= data1$hincfel
-job.preventing.time= data$jbprtfp
-job.preventing.time1= data1$jbprtfp
-job.decisions= data$dcsfwrka
-job.decisions1= data1$dcsfwrka
-health= data$health
-health1= data1$health
-work.time= data$wkhtot
-work.time1= data1$wkhtot
-house.income= data$hinctnta
-house.income1= data1$hinctnta
-cntry= data$cntry
-cntry1= data1$cntry
-age= data$agea
-age1= data1$agea
-gender= data$gndr
-gender1= data1$gndr
-edu= data$eisced
-edu1= data1$eisced
-# ann.inc from world bank data 2020 (GDP per capita)
-# political affiliation not found
-
-priv.people= data$inprdsc
-priv.people1= data1$inprds
-poltrust= data$trstplt
-poltrust1= data1$trstplt
-ppltrust= data$ppltrst
-ppltrust1= data1$ppltrst
-rlgs= data$rlgdgr
-rlgs1=data1$rlgdgr
-denom= data$rlgdnm
-denom1= data1$rlgdnm
-rlgatnd= data$rlgatnd
-rlgatnd1= data1$rlgatnd
-pray= data$pray
-pray1= data1$pray
-employ= data$emplrel
-employ1= data1$emplrel
-left.right= data$lrscale
-left.right1= data1$lrscale
-householdmembers= data$hhmmb
-householdmembers1= data1$hhmmb
-netusoft= data$netusoft
-netuseoft1= data1$netusoft
-netustm= data$netustm
-netustm1= data1$netustm
-vote= data$vote # remove it; won't be using it
-vote1= data1$vote # remove it; won't be using it
-safetydark= data$aesfdrk # remove it; won't be using it
-safetydark1= data1$aesfdrk # remove it; won't be using it
-closetoparent= data$closepnt # van
-closetoparent1= data1$closepnt # van
-jobsatisfaction= data$stfmjob # ne znam fakat ono; dal da to maknem van zbog onih varijabli o radu ili da samo ovu zadržim?
-jobasatisfaction1= data1$stfmjob # ne znam fakat ono; dal da to maknem van zbog onih varijabli o radu ili da samo ovu zadržim?
-politics.time= data$nwspol # ne ulazi u analizu
-politics.time1= data1$nwspol # ne ulazi u analizu
-govtisfaction= data$stfgov 
-govtisfaction1= data1$stfgov
-urban.rural= data$domicil
-urban.rural1= data1$domicil
-freedom.importance= data$impfree
-freedom.importance1= data1$impfree!!! # how important it is to be free and make own decisions
-
-# for rbind(), the data must be a data frame
-age.all= rbind(as.data.frame(c(age, age1)))
-closeparent= rbind(as.data.frame(c(closetoparent, closetoparent1)))
-country= rbind(as.data.frame(c(cntry, cntry1)))
-# denomination? (yes or no)
-education= rbind(as.data.frame(c(edu, edu1)))
-employment= rbind(as.data.frame(c(employ, employ1)))
-genders= rbind(as.data.frame(c(gender, gender1)))
-housemembers= rbind(as.data.frame(c(householdmembers, householdmembers1)))
-jobtisfy= rbind(as.data.frame(c(jobsatisfaction, jobasatisfaction1)))
-pol.scale= rbind(as.data.frame(c(left.right, left.right1)))
-net.minutes= rbind(as.data.frame(c(netustm, netustm1)))
-affairs.minutes= rbind(as.data.frame(c(politics.time, politics.time1)))
-trust.pol= rbind(as.data.frame(c(poltrust, poltrust1)))
-trust.ppl= rbind(as.data.frame(c(ppltrust, ppltrust1)))
-prayer= rbind(as.data.frame(c(pray, pray1)))
-rlgsattendance= rbind(as.data.frame(c(rlgatnd, rlgatnd1)))
-religios= rbind(as.data.frame(c(rlgs, rlgs1)))
-safetyafdark= rbind(as.data.frame(c(safetydark, safetydark1)))
-satisfaction= rbind(as.data.frame(c(stf, stf1)))
-voted= rbind(as.data.frame(c(vote, vote1))) # ne ulazi u analizu
-govsatis= rbind(as.data.frame(c(govtisfaction, govtisfaction1))) # postoje li značajne razlike u ovome i government expenditure in GDP?
-domicil= rbind(as.data.frame(c(urban.rural, urban.rural1)))
-freedom.import= rbind(as.data.frame(c(freedom.importance, freedom.importance1)))
-
-ess= cbind(age.all, closeparent, country, education, employment, genders, 
-           housemembers, jobtisfy, pol.scale, net.minutes, affairs.minutes,
-           trust.pol, trust.ppl, prayer, rlgsattendance, religios, safetyafdark,
-           satisfaction, voted, govsatis, domicil, freedom.import)
-
-names(ess)= c("age", "parent.close", "country", "edu", "employ", "gender",
-              "house.members", "jobtisfy", "pol.spectre", "net.use", "pol.time",
-              "pol.trust","people.trust", "prayer", "rel.attend", "religious",
-              "safety", "satisfaction", "voted", "govtisfaction", "urbanized", "free.im")
-
-rm(vote1, vote, urban.rural1,urban.rural, stf1, stf, safetydark, safetydark1,
-   rlgs1, rlgs, rlgtand1, rlgatnd, pray1, pray, ppltrust, ppltrust1, poltrust,
-   poltrust1, politics.time, politics.time1, netustm, netustm1, netuseoft1, netusoft,
-   left.right, left.right1, jobsatisfaction, jobasatisfaction1, householdmembers,
-   householdmembers1, govtisfaction, govtisfaction1, gender1, gender, employ, employ1,
-   edu1, edu, denom1, denom, cntry1, cntry, closetoparent, closetoparent1, age1, age, 
-   voted, trust.ppl, trust.pol, satisfaction, safetyafdark, rlgsattendance, religios,
-   prayer, pol.scale, net.minutes, jobtisfy, housemembers,govsatis, genders, employment,
-   education, domicil, closeparent, age.all, affairs.minutes, rlgatnd1, country)
-
-ess= ess[order(ess$country), ] # optional alphabetical ordering
-unique(ess$country) # all the states
-
-at= ess[ess$country== "AT", 1:length(ess)]
-cy= ess[ess$country== "CY", 1:length(ess)]
-de= ess[ess$country== "DE", 1:length(ess)]
-es= ess[ess$country== "ES", 1:length(ess)]
-il= ess[ess$country== "IL", 1:length(ess)]
-lv= ess[ess$country== "LV", 1:length(ess)]
-pl= ess[ess$country== "PL", 1:length(ess)]
-rs= ess[ess$country== "RS", 1:length(ess)]
-se= ess[ess$country== "SE", 1:length(ess)]
-be= ess[ess$country== "BE", 1:length(ess)]
-bg= ess[ess$country== "BG", 1:length(ess)]
-ch= ess[ess$country== "CH", 1:length(ess)]
-cz= ess[ess$country== "CZ", 1:length(ess)]
-ee= ess[ess$country== "EE", 1:length(ess)]
-fi= ess[ess$country== "FI", 1:length(ess)]
-fr= ess[ess$country== "FR", 1:length(ess)]
-gb= ess[ess$country== "GB", 1:length(ess)]
-gr= ess[ess$country== "GR", 1:length(ess)]
-hr= ess[ess$country== "HR", 1:length(ess)]
-hu= ess[ess$country== "HU", 1:length(ess)]
-ie= ess[ess$country== "IE", 1:length(ess)]
-is= ess[ess$country== "IS", 1:length(ess)]
-it= ess[ess$country== "IT", 1:length(ess)]
-lt= ess[ess$country== "LT", 1:length(ess)]
-me= ess[ess$country== "ME", 1:length(ess)]
-mk= ess[ess$country== "MK", 1:length(ess)]
-nl= ess[ess$country== "NL", 1:length(ess)]
-no= ess[ess$country== "NO", 1:length(ess)]
-pt= ess[ess$country== "PT", 1:length(ess)]
-si= ess[ess$country== "SI", 1:length(ess)]
-sk= ess[ess$country== "SK", 1:length(ess)]
-
-# Economic freedom index
-efi= read.csv("EFI Heritage.csv")
-efi2020= efi %>% filter(Index.Year==2020) %>% select(Name, Overall.Score)
-
-at$efi= 73.3
-cy$efi= 70.1
-de$efi= 73.5
-es$efi= 66.9
-il$efi= 74
-lv$efi= 71.9
-pl$efi= 69.1
-rs$efi= 66
-se$efi= 74.9
-be$efi= 68.9
-bg$efi= 70.2
-ch$efi= 82
-cz$efi= 74.8
-ee$efi= 77.7
-fi$efi= 75.7
-fr$efi= 66
-gb$efi= 79.3
-gr$efi= 59.5
-hr$efi= 62.2
-hu$efi= 66.4
-ie$efi= 80.9
-is$efi= 74
-it$efi= 63.8
-lt$efi= 76.7
-me$efi= 61.5
-mk$efi= 69.5
-nl$efi= 77
-no$efi= 73.4
-pt$efi= 67
-si$efi= 67.8
-sk$efi= 66.8
-
-# Corruption perception index
-at$cpi= 76
-cy$cpi= 57
-de$cpi= 80
-es$cpi= 62
-il$cpi= 60
-lv$cpi= 57
-pl$cpi= 56
-rs$cpi= 38
-se$cpi= 85
-be$cpi= 76
-bg$cpi= 44
-ch$cpi= 85
-cz$cpi= 54
-ee$cpi= 75
-fi$cpi= 85
-fr$cpi= 69
-gb$cpi= 77
-gr$cpi= 50
-hr$cpi= 47
-hu$cpi= 44
-ie$cpi= 72
-is$cpi= 75
-it$cpi= 53
-lt$cpi= 60
-me$cpi= 45
-mk$cpi= 35
-nl$cpi= 77
-no$cpi= 84
-pt$cpi= 61
-si$cpi= 60
-sk$cpi= 49
-
-# GDP per capita
-at$gdp.pc= 48409.23
-cy$gpd.pc= 28035.98
-de$gdp.pc= 46722.82
-es$gdp.pc= 26959.61
-il$gdp.pc= 44846.79
-lv$gdp.pc= 18207.14
-pl$gdp.pc= 15816.82
-rs$gdp.pc= 7733.80
-se$gdp.pc= 52837.90
-be$gdp.pc= 45517.90
-bg$gdp.pc= 10153.48
-ch$gdp.pc= 85656.32
-cz$gdp.pc= 22992.88
-ee$gdp.pc= 23595.24
-fi$gdp.pc= 49169.72
-fr$gdp.pc= 39055.28
-gb$gdp.pc= 40318.42
-gr$gdp.pc= 17658.95
-hr$gdp.pc= 14236.53
-hu$gdp.pc= 16125.61
-ie$gdp.pc= 85420.20
-is$gdp.pc= 58813.80
-it$gdp.pc= 31918.70
-lt$gdp.pc= 20363.92
-me$gdp.pc= 7677.37
-mk$gdp.pc= 5965.45
-nl$gdp.pc= 52162.57
-no$gdp.pc= 68340.02
-pt$gdp.pc= 22242.41
-si$gdp.pc= 25545.24
-sk$gdp.pc= 19551.62
-
-# Uneployment rate
-at$unemp= 5.36
-cy$unemp= 7.59
-de$unemp= 3.86
-es$unemp= 15.53
-il$unemp= 4.33
-lv$unemp= 8.1
-pl$unemp= 3.16
-rs$unemp= 9.01
-se$unemp= 8.29
-be$unemp= 5.55
-bg$unemp= 5.12
-ch$unemp= 4.82
-cz$unemp= 2.55
-ee$unemp= 6.96
-fi$unemp= 7.76
-fr$unemp= 8.01
-gb$unemp= 4.472
-gr$unemp= 16.31
-hr$unemp= 7.51
-hu$unemp= 4.25
-ie$unemp= 5.62
-is$unemp= 5.48
-it$unemp= 9.16
-lt$unemp= 8.49
-me$unemp= 17.88
-mk$unemp= 16.55
-nl$unemp= 3.82
-no$unemp= 4.42
-pt$unemp= 6.8
-si$unemp= 4.97
-sk$unemp= 6.69
-
-# Government expenditure in GDP
-at$govexp= 51.27
-cy$govexp= 43.61
-de$govexp= 32.77
-es$govexp= 41.03
-il$govexp= 42.34
-lv$govexp= 36.4
-pl$govexp= 42.14
-rs$govexp= 49.02
-se$govexp= 35.44
-be$govexp= 44.57
-bg$govexp= 37.72
-ch$govexp= 20.11
-cz$govexp= 39.03
-ee$govexp= 42.56
-fi$govexp= 41.38
-fr$govexp= 52.1
-gb$govexp= 47.36
-gr$govexp= 57.34
-hr$govexp= 45.74
-hu$govexp= 47.58
-ie$govexp= 26.63
-is$govexp= 37.68
-it$govexp= 50.53
-lt$govexp= 41.21
-me$govexp= NA   # nije im se dalo; no data since 2012
-mk$govexp= 36.76
-nl$govexp= 43.38
-no$govexp= 47.22
-pt$govexp= 46.26
-si$govexp= 46.25
-sk$govexp= 43.35
-
-# Political stability 
-at$polstab= 0.88
-cy$polstab= 0.29
-de$polstab= 0.64
-es$polstab= 0.41
-il$polstab= -0.89
-lv$polstab= 0.46
-pl$polstab= 0.49
-rs$polstab= -0.17
-se$polstab= 1
-be$polstab= 0.52
-bg$polstab= 0.4
-ch$polstab= 1.18
-cz$polstab= 0.91
-ee$polstab= 0.71
-fi$polstab= 0.98
-fr$polstab= 0.28
-gb$polstab= 0.48
-gr$polstab= 0.11
-hr$polstab= 0.61
-hu$polstab= 0.84
-ie$polstab= 0.96
-is$polstab= 1.37
-it$polstab= 0.4
-lt$polstab= 0.92
-me$polstab= -0.06
-mk$polstab= 0.11
-nl$polstab= 0.83
-no$polstab= 1.22
-pt$polstab= 1
-si$polstab= 0.7
-sk$polstab= 0.63
-
-# Multidimensional poverty headcount ratio
-at$multipov= 17.5
-cy$multipov= 21.3
-de$multipov= 24
-es$multipov= 26.4
-il$multipov= NA
-lv$multipov= 26
-pl$multipov= 17.3
-rs$multipov= 29.8
-se$multipov= 17.9
-be$multipov= 18.9
-bg$multipov= 32.1
-ch$multipov= NA
-cz$multipov= 11.9
-ee$multipov= 23.3
-fi$multipov= 16
-fr$multipov= 18.2
-gb$multipov= NA
-gr$multipov= 28.9
-hr$multipov= 23.2
-hu$multipov= 17.8
-ie$multipov= 20.8
-is$multipov= NA
-it$multipov= 25.3
-lt$multipov= 24.8
-me$multipov= 30.9
-mk$multipov= 39.8
-nl$multipov= 16.3
-no$multipov= 15.9
-pt$multipov= NA
-si$multipov= 15
-sk$multipov= 14.8
-
-# Estimated control of corruption
-at$corcon= 1.48
-cy$corcon= 0.35
-de$corcon= 1.83
-es$corcon= 0.71
-il$corcon= 0.54
-lv$corcon= 0.70
-pl$corcon= 0.62
-rs$corcon= -0.45
-se$corcon= 2.10
-be$corcon= 1.45
-bg$corcon= -0.32
-ch$corcon= 2.05
-cz$corcon= 0.56
-ee$corcon= 1.58
-fi$corcon= 2.17
-fr$corcon= 1.12
-gb$corcon= 1.66
-gr$corcon= 0.03
-hr$corcon= 0.18
-hu$corcon= 0.07
-ie$corcon= 1.53
-is$corcon= 1.68
-it$corcon= 0.51
-lt$corcon= 0.78
-me$corcon= -0.04
-mk$corcon= -0.50
-nl$corcon= 2
-no$corcon= 2.07
-pt$corcon= 0.72
-si$corcon= 0.78
-sk$corcon= 0.42
-
-# Estimated governance effectivenes
-at$govef= 1.61
-cy$govef= 0.84
-de$govef= 1.31
-es$govef= 0.85
-il$govef= 1.05
-lv$govef= 0.84
-pl$govef= 0.32
-rs$govef= -0.04
-se$govef= 1.67
-be$govef= 1.08
-bg$govef= -0.21
-ch$govef= 1.97
-cz$govef= 0.91
-ee$govef= 1.30
-fi$govef= 1.90
-fr$govef= 1.20
-gb$govef= 1.33
-gr$govef= 0.40
-hr$govef= 0.42
-hu$govef= 0.54
-ie$govef= 1.44
-is$govef= 1.48
-it$govef= 0.36
-lt$govef= 1.01
-me$govef= -0.11
-mk$govef= 0.03
-nl$govef= 1.81
-no$govef= 1.89
-pt$govef= 0.98
-si$govef= 1.12
-sk$govef= 0.50
-
-# Estimated regulatory quality
-at$regqual= 1.4
-cy$regqual= 1
-de$regqual= 1.58
-es$regqual= 0.75
-il$regqual= 1.23
-lv$regqual= 1.18
-pl$regqual= 0.85
-rs$regqual= 0.08
-se$regqual= 1.68
-be$regqual= 1.34
-bg$regqual= 0.46
-ch$regqual= 1.58
-cz$regqual= 1.23
-ee$regqual= 1.53
-fi$regqual= 1.85
-fr$regqual= 1.19
-gb$regqual= 1.47
-gr$regqual= 0.54
-hr$regqual= 0.36
-hu$regqual= 0.47
-ie$regqual= 1.48
-is$regqual= 1.44
-it$regqual= 0.49
-lt$regqual= 1.08
-me$regqual= 0.42
-mk$regqual= 0.43
-nl$regqual= 1.75
-no$regqual= 1.7
-pt$regqual= 0.82
-si$regqual= 0.91
-sk$regqual= 0.77
-
-# Estimated rule of law
-at$law= 1.77
-cy$law= 0.55
-de$law= 1.52
-es$law= 0.86
-il$law= 0.94
-lv$law= 0.92
-pl$law= 0.52
-rs$law= -0.12
-se$law= 1.77
-be$law= 1.33
-bg$law= -0.13
-ch$law= 1.78
-cz$law= 1.02
-ee$law= 1.34
-fi$law= 2.02
-fr$law= 1.3
-gb$law= 1.46
-gr$law= 0.29
-hr$law= 0.24
-hu$law= 0.5
-ie$law= 1.46
-is$law= 1.75
-it$law= 0.21
-lt$law= 0.95
-me$law= -0.04
-mk$law= -0.11
-nl$law= 1.71
-no$law= 1.93
-pt$law= 1.15
-si$law= 1.04
-sk$law= 0.65
-
-# GINI Index (qustionable for our research)
-at$gini= 29.8
-cy$gini= 31.7
-de$gini= NA
-es$gini= 34.9
-il$gini= NA
-lv$gini= 35.7
-pl$gini= NA
-rs$gini= 35
-se$gini= 28.9
-be$gini= 26
-bg$gini= 40.5
-ch$gini= NA
-cz$gini= 26.2
-ee$gini= 30.7
-fi$gini= 27.1
-fr$gini= 30.7
-gb$gini= 32.6
-gr$gini= 33.6
-hr$gini= 29.5
-hu$gini= 29.7
-ie$gini= 29.2
-is$gini= NA
-it$gini= 35.2
-lt$gini= 36
-me$gini= NA
-mk$gini= NA
-nl$gini= 26
-no$gini= NA
-pt$gini= 34.7
-si$gini= 24
-sk$gini= NA
-
-identical(names(at), names(cy)) # CYPRUS IS THE INTRUDER!!!! AAAAAAA
-which(!identical(names(at), names(cy))) # 1!!!
-names(cy)= names(at)
-
-ess= rbind(at, be, bg, ch, cy, cz, de, ee, es, fi, fr, gb, gr, hr, hu, ie, il,
-           is, it, lt, lv, me, mk, nl, no, pl, pt, rs, se, si, sk)
-rm(at, be, bg, ch, cy, cz, de, ee, es, fi, fr, gb, gr, hr, hu, ie, il, is, it,
-   lt, lv, me, mk, nl, no, pl, pt, rs, se, si, sk)
-# column names of the two data frames don’t match
-# "Error in match.names(clabs, names(xi)) : names do not match previous names"
-identical(names(at), names(cy)) # CYPRUS IS THE INTRUDER!!!! AAAAAAA
-which(!identical(names(at), names(cy))) # 1!!!
-names(cy)= names(at) # because all the others are the same as AT
-
-
-"ess$efi= if(ess$country== "AT"){
-  73.3} else if(ess$country== "BE"){
-      68.9} else if(ess$country== "BG"){
-          62.2} else if(ess$country== "CH"){
-              82} else if(ess$country== "CY"){
-                  70.1} else if(ess$country== "CZ"){
-                      74.8} else if(ess$country== "DE"){
-                          78.3} else if(ess$country== "EE"){
-                              77.7} else if(ess$country== "ES"){
-                                  66.9} else if(ess$country== "FI"){
-                                      75.7} else if(ess$country== "FR"){
-                                          66} else if(ess$country== "GB"){
-                                              79.3} else if(ess$country== "GR"){
-                                                  59.9} else if(ess$country== "HR"){
-                                                      62.2} else if(ess$country== "HU"){
-                                                          66.4} else if(ess$country== "IE"){
-                                                              80.9} else if(ess$country== "IL"){
-                                                                  74} else if(ess$country== "IS"){
-                                                                      77.1} else if(ess$country== "IT"){
-                                                                          63.8} else if(ess$country== "LT"){
-                                                                              77.3} else if(ess$country== "ME"){
-                                                                                  61.5} else if (ess$country== "MK"){
-                                                                                      66.5} else if(ess$country== "NL"){
-                                                                                          77} else if(ess$country== "NO"){
-                                                                                              73.4} else if(ess$country== "PT"){
-                                                                                                  67} else if(ess$country== "SI"){
-                                                                                                      67.8} else if(ess$country== "SK"){
-                                                                                                          66.8} else{
-                                                                                                            NA}"
-# if() checks only 1 element, not a vector!!!
-### REMEMBER: FOR LOOPING THROGH VECTORS (NOT SINGLE VALUES) YOU USE for() loop!
-
-
-#LIBRARY
-library(tidyverse)
+# Podaci
+library(ggplot2)
 library(randomForest)
-library(ranger)
-library(tidymodels)
-library(party)
+library(rfUtilities)
 
-summary(ess)
-# ess[, as.numeric(c(22:33))]
-# probably throwing out "voted" variable.
-ess$age= ifelse(ess$age==999, NA, as.numeric(ess$age))
-ess$parent.close= ifelse(ess$parent.close== 6 | ess$parent.close== 7 | ess$parent.close== 8 | ess$parent.close== 9, NA, as.factor(ess$parent.close))
-ess$edu= ifelse(ess$edu==77 | ess$edu==88 | ess$edu== 99, NA, ess$edu)
-# additional edu factor
-ess$edu= as.factor(ess$edu)
-ess$employ= ifelse(ess$employ== 6 | ess$employ== 7 | ess$employ==8 | ess$employ==9, NA, as.factor(ess$employ))
-ess$gender= ifelse(ess$gender==9, NA, as.factor(ess$gender))
-ess$house.members= ifelse(ess$house.members== 77 | ess$house.members== 88 | ess$house.members== 99, NA, as.numeric(ess$house.members))
-ess$jobtisfy= ifelse(ess$jobtisfy== 66 | ess$jobtisfy== 77 | ess$jobtisfy== 88 | ess$jobtisfy== 99, NA, as.numeric(ess$jobtisfy))
-ess$pol.spectre= ifelse(ess$pol.spectre== 77 | ess$pol.spectre== 88 | ess$polspectre== 99, NA, as.factor(ess$pol.spectre))
-ess$net.use= ifelse(ess$net.use== 6666 | ess$net.use== 7777 | ess$net.use== 8888 | ess$net.use== 9999, NA, as.numeric(ess$net.use))
-ess$pol.time= ifelse(ess$pol.time== 7777 | ess$pol.time== 8888 | ess$pol.time== 9999, NA, as.numeric(ess$pol.time))
-ess$pol.trust= ifelse(ess$pol.trust== 77 | ess$pol.trust== 88 | ess$pol.trust== 99, NA, as.numeric(ess$pol.trust))
-ess$people.trust= ifelse(ess$people.trust== 77 | ess$people.trust == 88 | ess$people.trust= 99, NA, ess$people.trust)
-ess$prayer= as.factor(ifelse(ess$prayer== 77 | ess$prayer== 88 | ess$prayer== 99, NA, as.factor(ess$prayer)))
-ess$rel.attend= ifelse(ess$rel.attend== 77 | ess$rel.attend== 88 | ess$rel.attend= 99, NA, as.factor(ess$rel.attend))
-ess$religious= ifelse(ess$religious== 77 | ess$religious== 88 | ess$religious== 99, NA, as.numeric(ess$religious))
-ess$safety= ifelse(ess$safety== 7 | ess$safety== 8 | ess$religious== 9, NA, as.factor(ess$safety))
-ess$satisfaction= ifelse(ess$satisfaction== 77 | ess$satisfaction== 88 | ess$satisfaction== 99, NA, as.numeric(ess$satisfaction))
-ess$govtisfaction= ifelse(ess$govtisfaction== 77 | ess$govtisfaction== 88 | ess$govtisfaction== 99, NA, as.numeric(ess$govtisfaction))
-ess$urbanized== ifelse(ess$urbanized== 7 | ess$urbanized== 8 | ess$urbanized== 9, NA, as.factor(ess$urbanized))
+sve= read.csv("ESS10.csv")
+sve.sc= read.csv("ESS10SC.csv") # SC: self-completion; zbog COVID-19; ne ulazi
+bdp= read.csv("BDP.csv")
+bdp= bdp[-(32:40), -(2:4)]
+bdp= bdp[-c(21:23,24:29), ]
+names(bdp)= c("country", "income")
 
-set.seed(13472841)
-splitting= sample(1:3, size=nrow(ess), prob=c(0.7,0.2,0.1), replace = T)
-ess.train= ess[splitting==1, ]
-ess.test= ess[splitting==2, ]
-ess.valid= ess[splitting==3, ]
-# do the cross vals for each set
+sve= sve[, c("cntry", "stflife","anweight", "stflife", "health",
+             "marsts", "domicil", "iplylfr", "rlgdgr",
+             "pray", "rlgatnd", "wkhtot", "eisced", 
+             "hinctnta", "hhmmb")]
+
+cntry= as.factor(sve$cntry)
+health= sve$health
+health[health> 5]= NA
+health= as.factor(health) # da ili ne? ja bi rekel da; konzultacije
+stflife= as.integer(sve$stflife)
+stflife[stflife>10]= NA
+stflife= cut(stflife, 
+             breaks= c(0, 3, 5, 7, 9, 10),
+             right= F)
+# a možda može i 4 kategorije; našel sam opravdanje u knjizi
+stflife= as.factor(stflife)
+marsts= sve$marsts
+marsts[marsts>5]= NA
+marsts= as.factor(marsts)
+domicil= sve$domicil
+domicil[domicil>5]= NA
+domicil= as.factor(domicil)
+iplylfr= sve$iplylfr
+iplylfr[iplylfr>6]= NA
+iplylfr= as.factor(iplylfr)
+rlgdgr= sve$rlgdgr
+rlgdgr[rlgdgr> 10]= NA
+rlgdgr= as.integer(rlgdgr)
+pray= sve$pray
+pray[pray> 7]= NA
+pray= as.factor(pray)
+rlgatnd= sve$rlgatnd
+rlgatnd[rlgatnd> 7]= NA
+wkhtot= sve$wkhtot
+wkhtot[wkhtot>= 666]= NA
+ggplot(data= as.data.frame(wkhtot), aes(x= wkhtot)) + geom_histogram(binwidth= 1)
+# da maknem sve koji su stavili da rade više od 70 sati tjedno?
+eisced= sve$eisced
+eisced[eisced> 7]= NA
+eisced= as.factor(eisced)
+hinctnta= sve$hinctnta
+hinctnta[hinctnta> 10]= NA
+hhmmb= sve$hhmmb
+hhmmb[hhmmb>= 77]= NA
+
+ggplot(data= as.data.frame(hhmmb), aes(x= hhmmb)) + geom_histogram(binwidth= 1)
+
+
+tab=table(sve$cntry)
+income= bdp$income
+each= tab
+bdp.prihodi= as.numeric(unlist(mapply(rep, income, each)))
+sve$bdp_prihodi= bdp.prihodi
+bdp_decil= 
+sve= data.frame(cntry, stflife, bdp.prihodi, health, hinctnta, iplylfr, hhmmb,
+                domicil, wkhtot, rlgdgr, rlgatnd, pray, marsts)
+
+# napraviti primanja prema decilu kojemu svatko pripada u BDPu
+
+# TO JE DATASET
+
+
+# izračunati primanja po decilima; KONZULTACIJE!!!
+library(ggplot2)
+ggplot(data= sve, mapping= aes(x= hinctnta)) + geom_histogram(binwidth = 1) # jasno se vidi distrbucija
+
+
+# REGIJE
+be= subset(sve, cntry== "BE")
+hr= subset(sve, cntry== "HR")
+bg= subset(sve, cntry=="BG")
+ch= subset(sve, cntry=="CH")
+cz= subset(sve, cntry== "CZ")
+ee= subset(sve, cntry=="EE")
+fi= subset(sve, cntry=="FI")
+fr= subset(sve, cntry== "FR")
+gb= subset(sve, cntry== "GB")
+gr= subset(sve, cntry== "GR")
+hu= subset(sve, cntry=="HU")
+ie= subset(sve, cntry=="IE")
+is= subset(sve, cntry== "IS")
+it= subset(sve, cntry== "IT")
+lt= subset(sve, cntry== "LT")
+me= subset(sve, cntry== "ME")
+mk= subset(sve, cntry== "MK")
+nl= subset(sve, cntry=="NL")
+no= subset(sve, cntry== "NO")
+pt= subset(sve, cntry=="PT")
+sl= subset(sve, cntry=="SI")
+sk= subset(sve, cntry=="SK")
+
+zapadna= rbind(be, ch, fr, gb, ie, nl)
+sjeverna= rbind(ee, fi, lt, is)
+juzna= rbind(it, pt, gr)
+istocna= rbind(hr, bg, cz, hu, me, mk, sl, sk)
+
+set.seed(57123)
+index.zapadna= sample(3, nrow(zapadna), replace= T, prob= c(0.7, 0.2, 0.1))
+trainset.zapadna= zapadna[index.zapadna==1, ]
+testset.zapadna = zapadna[index.zapadna== 2, ]
+valset.zapadna= zapadna[index.zapadna== 3, ]
+
+index.istocna= sample(3, nrow(istocna), replace= T, prob= c(0.7, 0.2, 0.1))
+trainset.istocna= istocna[index.istocna==1, ]
+testset.istocna = istocna[index.istocna== 2, ]
+valset.istocna= istocna[index.istocna== 3, ]
+  
+index.sjeverna= sample(3, nrow(sjeverna), replace= T, prob= c(0.7, 0.2, 0.1))
+trainset.sjeverna= sjeverna[index.sjeverna==1, ]
+testset.sjeverna = sjeverna[index.sjeverna== 2, ]
+valset.sjeverna= sjeverna[index.sjeverna== 3, ]
+  
+index.juzna= sample(3, nrow(juzna), replace= T, prob= c(0.7, 0.2, 0.1))
+trainset.juzna= juzna[index.juzna==1, ]
+testset.juzna= juzna[index.juzna== 2, ]
+valset.juzna= juzna[index.juzna== 3, ]
+
+# napraviti primanja prema decilu kojemu pripada u BDPu; ali to kod "sve"
+
