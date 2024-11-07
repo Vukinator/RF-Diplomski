@@ -65,8 +65,10 @@ income= bdp$income
 each= tab
 bdp.prihodi= as.numeric(unlist(mapply(rep, income, each)))
 sve$bdp_prihodi= bdp.prihodi
+bdp_decil=
 sve= data.frame(cntry, stflife, bdp.prihodi, health, hinctnta, iplylfr, hhmmb,
                 domicil, wkhtot, rlgdgr, rlgatnd, pray, marsts)
+
 
 # još napraviti primanja prema decilu kojemu svatko pripada u BDPu i to je to
 # TO JE DATASET
