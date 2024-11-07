@@ -23,6 +23,7 @@ stflife= as.integer(sve$stflife)
 stflife[stflife>10]= NA
 stflife= cut(stflife, 
              breaks= c(0, 3, 5, 7, 9, 10),
+             labels= c(1, 2, 3, 4, 5),
              right= F)
 # a možda može i 4 kategorije; našel sam opravdanje u knjizi
 stflife= as.factor(stflife)
@@ -43,6 +44,7 @@ pray[pray> 7]= NA
 pray= as.factor(pray)
 rlgatnd= sve$rlgatnd
 rlgatnd[rlgatnd> 7]= NA
+rlgatnd= as.factor(rlgatnd)
 wkhtot= sve$wkhtot
 wkhtot[wkhtot>= 666]= NA
 ggplot(data= as.data.frame(wkhtot), aes(x= wkhtot)) + geom_histogram(binwidth= 1)
@@ -63,7 +65,6 @@ income= bdp$income
 each= tab
 bdp.prihodi= as.numeric(unlist(mapply(rep, income, each)))
 sve$bdp_prihodi= bdp.prihodi
-bdp_decil= 
 sve= data.frame(cntry, stflife, bdp.prihodi, health, hinctnta, iplylfr, hhmmb,
                 domicil, wkhtot, rlgdgr, rlgatnd, pray, marsts)
 
@@ -120,9 +121,8 @@ index.sjeverna= sample(3, nrow(sjeverna), replace= T, prob= c(0.7, 0.2, 0.1))
 trainset.sjeverna= sjeverna[index.sjeverna==1, ]
 testset.sjeverna = sjeverna[index.sjeverna== 2, ]
 valset.sjeverna= sjeverna[index.sjeverna== 3, ]
-  
+
 index.juzna= sample(3, nrow(juzna), replace= T, prob= c(0.7, 0.2, 0.1))
 trainset.juzna= juzna[index.juzna==1, ]
 testset.juzna= juzna[index.juzna== 2, ]
 valset.juzna= juzna[index.juzna== 3, ]
-
