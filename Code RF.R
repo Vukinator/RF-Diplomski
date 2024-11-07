@@ -67,8 +67,7 @@ bdp_decil=
 sve= data.frame(cntry, stflife, bdp.prihodi, health, hinctnta, iplylfr, hhmmb,
                 domicil, wkhtot, rlgdgr, rlgatnd, pray, marsts)
 
-# napraviti primanja prema decilu kojemu svatko pripada u BDPu
-
+# još napraviti primanja prema decilu kojemu svatko pripada u BDPu i to je to
 # TO JE DATASET
 
 
@@ -126,6 +125,4 @@ index.juzna= sample(3, nrow(juzna), replace= T, prob= c(0.7, 0.2, 0.1))
 trainset.juzna= juzna[index.juzna==1, ]
 testset.juzna= juzna[index.juzna== 2, ]
 valset.juzna= juzna[index.juzna== 3, ]
-
-# napraviti primanja prema decilu kojemu pripada u BDPu; ali to kod "sve"
 
