@@ -1,3 +1,14 @@
+library(tidyverse)
+library(rpart)
+library(rpart.plot)
+library(randomForest)
+library(ranger)
+library(randomForestExplainer)
+library(rfUtilities) # instalirano ručno
+library(parallel)
+
+# Podaci
+
 ess.raw<- read.csv("ESS10.csv")
 bdp<- read.csv("BDP.csv")
 bdp<- bdp[-(32:40), -(2:4)]
@@ -8,16 +19,17 @@ bdp$country<- sort(bdp$country)
 ess<- ess.raw[, c("cntry", "stflife", "health", "hhmmb",
                   "rshpsts","domicil", "sclmeet","iplylfr", 
                   "inprdsc", "imptrad", "imprich","rlgdgr",
-                  "rlgdnm","pray", "rlgatnd", "wkhtot",
+                  "rlgdnm","pray", "rlgatnd", "wkhtot", "stfmjob",
                   "eisced","hinctnta","gndr","agea")]
 
-# da stavim i spol (gndr) i dob (agea)? i important to be rich (imprich) i important to follow traditions and customs(imptrad) za zajednicu kod iplylfr?
-# da stavim i koliko se često nalaze s prijateljima (sclmeet) i s koliko može ljudi razgovarati o intimnim stvarima (inprdsc)
-# koji je odnos s onim s kojim živi (rshpsts)- to ide za obitelj
 cntry<- as.factor(ess$cntry)
-
+levels(cntry)<- c("Belgija", "Bugarska", "Švicarska", "Češka", "Estonija",
+                 "Finska", "Francuska", "V.Britanija", "Grčka",
+                 "Hrvatska", "Mađarska", "Irska", "Island", "Italija",
+                 "Litva", "C.Gora", "S.Makedonija", "Nizozemska",
+                 "Norveška", "Portugal", "Slovenija", "Slovačka")
 gndr<- as.factor(ess$gndr)
-age<- ess$agea
+agea<- ess$agea
 
 health<- ess$health
 health[health== 1]<- 10 # zamjena; obrnuti redoslijed
@@ -30,7 +42,7 @@ health<- as.integer(health)
 health[health> 5]<- floor(mean(health, na.rm= T))
 
 stflife<- ess$stflife
-stflife[stflife>10]<- floor(mean(stflife, na.rm= T))
+stflife[stflife>10]<- floor(mean(stflife[stflife<= 10], na.rm= T))
 stflife<- cut(stflife, 
               breaks= c(-1, 2, 4, 6, 8, 10),
               labels= c(1, 2, 3, 4, 5),
@@ -41,6 +53,7 @@ levels(stflife)<- c("Totally unsatisfied",
                     "Not satisfied nor unsatisfied",
                     "Satisfied",
                     "Totally satisfied")
+
 
 #stflife<- ess$stflife
 #stflife[stflife>10]<- floor(mean(stflife, na.rm= T))
@@ -72,11 +85,11 @@ domicil<- ess$domicil
 table(domicil)
 domicil[domicil>5]<- which.max(table(domicil)) # 56 NA vrijednosti
 domicil<- as.factor(domicil)
-levels(domicil)<- c("A big city",
-                    "Suburbs or outskirts of big city",
-                    "Town or small city",
-                    "Country village",
-                    "Farm or home in countryside")
+#levels(domicil)<- c("A big city",
+ #                   "Suburbs or outskirts of big city",
+  #                  "Town or small city",
+   #                 "Country village",
+    #                "Farm or home in countryside")
 
 iplylfr= ess$iplylfr
 iplylfr[iplylfr== 1]<- 10 # znači, tu mijenjamo redoslijed
@@ -119,16 +132,16 @@ imptrad[imptrad> 6]<- floor(mean(imptrad[imptrad< 6]))
 sclmeet<- ess$sclmeet
 sort(table(sclmeet), decreasing= T)
 sclmeet[sclmeet> 7]<- 6
-levels(sclmeet)<- c("Never", "Less than once a month",
-                    "Once a month", "Several times a month",
-                    "Once a week", "Several times a week",
-                    "Every day")
+#levels(sclmeet)<- c("Never", "Less than once a month",
+#                    "Once a month", "Several times a month",
+ #                   "Once a week", "Several times a week",
+  #                  "Every day")
 
 inprdsc<- ess$inprdsc
 sort(table(inprdsc), decreasing= T)
 inprdsc[inprdsc> 6]<- 2
 inprdsc<- as.factor(inprdsc)
-levels(inprdsc)<- c("None", "1", "2", "3", "4-6", "7-9", "10+")
+# levels(inprdsc)<- c("None", "1", "2", "3", "4-6", "7-9", "10+")
 
 
 
@@ -140,52 +153,60 @@ rlgatnd<- ess$rlgatnd
 table(rlgatnd)
 rlgatnd[rlgatnd> 7]<- which.max(table(rlgatnd))
 rlgatnd<- as.factor(rlgatnd)
-levels(rlgatnd)<- c("Every day",
-                    "More than once a week",
-                    "Once a week",
-                    "At least once a month",
-                    "Only on special holy days",
-                    "Less often",
-                    "Never")
+#levels(rlgatnd)<- c("Every day",
+ #                   "More than once a week",
+  #                 "At least once a month",
+   #                   ""
+    #                 "Only on special holy days",
+     #                "Less often",
+      #               "Never")
 rlgdnm<- ess$rlgdnm
 sort(table(rlgdnm), decreasing= T)
 rlgdnm[rlgdnm> 8]<- 66
 rlgdnm<- as.factor(rlgdnm)
-levels(rlgdnm)<- c("Roman Catholic", "Protestant",
-                   "Eastern Orthodox", "Other Christian Denomination",
-                   "Jewish", "Islam", "Eastern religions", 
-                   "Other Non-Christian Religions",
-                   "Not applicable")
+# levels(rlgdnm)<- c("Roman Catholic", "Protestant",
+  #                  "Eastern Orthodox", "Other Christian Denomination",
+    #                "Jewish", "Islam", "Eastern religions", 
+      #              "Other Non-Christian Religions",
+        #            "Not applicable")
 
 
 pray<- ess$pray
 pray[pray> 7]<- which.max(table(pray))
 pray<- as.factor(pray)
-levels(pray)<- c("Every day",
-                 "More than once a week",
-                 "Once a week",
-                 "At least once a month",
-                 "Only on special holy days",
-                 "Less often",
-                 "Never")
+# levels(pray)<- c("Every day",
+  #               "More than once a week",
+   #              "Once a week",
+    #             "At least once a month",
+     #            "Only on special holy days",
+      #           "Less often",
+       #          "Never")
 
 
 wkhtot<- ess.raw$wkhtot
 wkhtot[wkhtot>= 140]<- mean(wkhtot[wkhtot<= 140], na.rm= T)# mean od svih koji imaju manje od 120 radnih sati tjedno
 
+stfmjob<- ess$stfmjob
+stfmjob[stfmjob> 10]<- ceiling(mean(stfmjob[stfmjob<=10], na.rm= T))
+stfmjob<- as.integer(cut(stfmjob, 
+              breaks= c(-1, 2, 4, 6, 8, 10),
+              labels= c(1, 2, 3, 4, 5),
+              right= T))
+
+
 eisced<- ess$eisced
 eisced[eisced> 55]<- which.max(table(eisced))
 eisced[eisced== 55]<- 8
 eisced<- as.factor(eisced)
-levels(eisced)<- c("Not possible to harmonise into ES-ISCED",
-                   "Less than lower secondary",
-                   "Lower secondary",
-                   "Lower tier upper secondary",
-                   "Upper tier upper secondary",
-                   "Advanced vocational, sub-degree",
-                   "Lower tertiary education, BA level",
-                   "Higher tertiary education, >= MA level",
-                   "Other")
+# levels(eisced)<- c("Not possible to harmonise into ES-ISCED",
+  #                 "Less than lower secondary",
+   #                "Lower secondary",
+    #               "Lower tier upper secondary",
+     #              "Upper tier upper secondary",
+      #             "Advanced vocational, sub-degree",
+       #            "Lower tertiary education, BA level",
+        #           "Higher tertiary education, >= MA level",
+         #          "Other")
 
 hinctnta<- ess$hinctnta
 hinctnta[hinctnta> 10]<- floor(mean(hinctnta[hinctnta<= 10], na.rm= T)) # ovo bi možda trebalo za svaku državu zajedno; i staviti kao faktor!
@@ -207,55 +228,318 @@ bdp.prihodi<- as.numeric(unlist(mapply(rep, income, each)))
 ajmo<- data.frame(cntry, bdp.prihodi, stflife, health, hhmmb,
                  rshpsts, domicil, sclmeet,iplylfr, 
                  inprdsc, imptrad, imprich,rlgdgr,
-                 rlgdnm,pray, rlgatnd, wkhtot,
-                 eisced,hinctnta,gndr,age)
+                 rlgdnm, pray, rlgatnd, stfmjob, wkhtot,
+                 eisced ,hinctnta ,gndr ,agea)
 
 # REGIJE
-be<- subset(ajmo, cntry== "BE")
-hr<- subset(ajmo, cntry== "HR")
-bg<- subset(ajmo, cntry=="BG")
-ch<- subset(ajmo, cntry=="CH")
-cz<- subset(ajmo, cntry== "CZ")
-ee<- subset(ajmo, cntry=="EE")
-fr<- subset(ajmo, cntry== "FR")
-fi<- subset(ajmo, cntry== "FI") 
-gb<- subset(ajmo, cntry== "GB")
-gr<- subset(ajmo, cntry== "GR")
-hu<- subset(ajmo, cntry=="HU")
-ie<- subset(ajmo, cntry=="IE")
-is<- subset(ajmo, cntry== "IS")
-it<- subset(ajmo, cntry== "IT")
-lt<- subset(ajmo, cntry== "LT")
-me<- subset(ajmo, cntry== "ME")
-mk<- subset(ajmo, cntry== "MK")
-nl<- subset(ajmo, cntry=="NL")
-no<- subset(ajmo, cntry== "NO")
-pt<- subset(ajmo, cntry=="PT")
-sl<- subset(ajmo, cntry=="SI")
-sk<- subset(ajmo, cntry=="SK")
+be<- subset(ajmo, cntry== "Belgija")
+hr<- subset(ajmo, cntry== "Hrvatska")
+bg<- subset(ajmo, cntry=="Bugarska")
+ch<- subset(ajmo, cntry=="Švicarska")
+cz<- subset(ajmo, cntry== "Češka")
+ee<- subset(ajmo, cntry=="Estonija")
+fr<- subset(ajmo, cntry== "Francuska")
+fi<- subset(ajmo, cntry== "Finska") 
+gb<- subset(ajmo, cntry== "V.Britanija")
+gr<- subset(ajmo, cntry== "Grčka")
+hu<- subset(ajmo, cntry=="Mađarska")
+ie<- subset(ajmo, cntry=="Irska")
+is<- subset(ajmo, cntry== "Island")
+it<- subset(ajmo, cntry== "Italija")
+lt<- subset(ajmo, cntry== "Litva")
+me<- subset(ajmo, cntry== "C.Gora")
+mk<- subset(ajmo, cntry== "S.Makedonija")
+nl<- subset(ajmo, cntry=="Nizozemska")
+no<- subset(ajmo, cntry== "Norveška")
+pt<- subset(ajmo, cntry=="Portugal")
+sl<- subset(ajmo, cntry=="Slovenija")
+sk<- subset(ajmo, cntry=="Slovačka")
 
-zapadna= rbind(be, ch, fr, gb, ie, nl)
-sjeverna= rbind(ee, fi, lt, is)
-juzna= rbind(it, pt, gr)
-istocna= rbind(hr, bg, cz, hu, me, mk, sl, sk)
+zapadna<- rbind(be, ch, fr, gb, ie, nl)
+sjeverna<- rbind(ee, fi, lt, is, no)
+juzna<- rbind(it, pt, gr)
+istocna<- rbind(hr, bg, cz, hu, me, mk, sl, sk)
 
-set.seed(57123)
-index.zapadna= sample(1:3, size= nrow(zapadna), replace= T, prob= c(0.7, 0.2, 0.1))
-trainset.zapadna= zapadna[index.zapadna==1, ]
-testset.zapadna = zapadna[index.zapadna== 2, ]
-valset.zapadna= zapadna[index.zapadna== 3, ]
 
-index.istocna= sample(1:3, nrow(istocna), replace= T, prob= c(0.7, 0.2, 0.1))
-trainset.istocna= istocna[index.istocna==1, ]
-testset.istocna = istocna[index.istocna== 2, ]
-valset.istocna= istocna[index.istocna== 3, ]
+set.seed(380)
+index.zapadna<- sample(1:2, size=nrow(zapadna), replace= T, prob= c(0.7, 0.3))
+train.zapadna<- zapadna[index.zapadna == 1, ]
+test.zapadna<- zapadna[index.zapadna != 1, ]
 
-index.sjeverna= sample(1:3, nrow(sjeverna), replace= T, prob= c(0.7, 0.2, 0.1))
-trainset.sjeverna= sjeverna[index.sjeverna==1, ]
-testset.sjeverna = sjeverna[index.sjeverna== 2, ]
-valset.sjeverna= sjeverna[index.sjeverna== 3, ]
+index.sredist<- sample(1:2, size=nrow(sredist), replace= T, prob= c(0.7, 0.3))
+train.sredist<- sredist[index.sredist== 1, ]
+test.sredist<- sredist[index.sredist!= 1, ]
 
-index.juzna= sample(1:3, nrow(juzna), replace= T, prob= c(0.7, 0.2, 0.1))
-trainset.juzna= juzna[index.juzna==1, ]
-testset.juzna= juzna[index.juzna== 2, ]
-valset.juzna= juzna[index.juzna== 3, ]
+index.juzna<- sample(1:2, size=nrow(juzna), replace= T, prob= c(0.7, 0.3))
+train.juzna<- juzna[index.juzna== 1, ]
+test.juzna<- juzna[index.juzna!= 1,]
+
+index.sjeverna<- sample(1:2, size=nrow(sjeverna), replace= T, prob= c(0.7, 0.3))
+train.sjeverna<- sjeverna[index.sjeverna== 1, ]
+test.sjeverna<- sjeverna[index.sjeverna!= 1, ]
+
+## BROJ ISPITANIKA PO DRŽAVAMA
+ggplot(data= ajmo, aes(x=cntry, fill= cntry)) + 
+  geom_bar() + 
+  theme_minimal() + 
+  labs(title= "Broj ispitanika po državama",
+       x= "Država",
+       y= "Broj ispitanika") + 
+  theme(plot.title= element_text(hjust= 0.5), 
+        legend.position = "none") + 
+  scale_y_continuous(limits= c(0, 3000), breaks= seq(0, 3000, by= 100))
+
+# PRIKAZ PROSJEČNOG ŽIVOTNOG ZADOVOLJSTVA ZA SVAKU DRŽAVU U SVAKOJ REGIJI
+## Zapadna
+meanstlife_zapadna<- zapadna %>% 
+  group_by(cntry) %>% 
+  summarise(stflife_mean= mean(as.integer(stflife)), na.rm= T)
+
+ggplot(data= meanstlife_zapadna, aes(x= cntry, y= stflife_mean, fill= cntry)) + 
+  geom_bar(stat= "identity") + 
+  labs(title= "Srednja vrijednost razine životnoga zadovoljstva ispitanika država Zapadne Europe",
+       x= "Država",
+       y= "Srednja vrijednost") + 
+  scale_y_continuous(limits= c(0, 5), breaks= seq(0, 5, by= 0.5)) + 
+  theme(plot.title= element_text(hjust= 0.5),
+        legend.position = "none") + 
+  theme_minimal() + 
+  guides(fill= "none")
+
+## Srednjoistočna
+meanstflife_sredistocna<- istocna %>% 
+  group_by(cntry) %>% 
+  summarise (stflife_mean= mean(as.integer(stflife)), na.rm= T)
+  
+ggplot(data= meanstflife_sredistocna, aes(x= cntry, y= stflife_mean, fill= cntry)) +
+  geom_bar(stat= "identity") + 
+  labs(title= "Srednja vrijednost razine životnoga zadovoljstva ispitanika država Srednjoistočne Europe",
+       x= "Država",
+       y= "Srednja vrijednost") + 
+  scale_y_continuous(limits= c(0, 5), breaks= seq(0, 5, by= 0.5)) + 
+  theme(plot.title= element_text(hjust= 0.5),
+        legend.position = "none") + 
+  theme_minimal() + 
+  guides(fill= "none")
+
+## Južna
+meanstflife_juzna<- juzna %>% 
+  group_by(cntry) %>% 
+  summarise(stflife_mean= mean(as.integer(stflife)), na.rm= T)
+
+ggplot(data= meanstflife_juzna, aes(x= cntry, y= stflife_mean, fill= cntry)) +
+  geom_bar(stat= "identity") + 
+  labs(title= "Srednja vrijednost razine životnoga zadovoljstva ispitanika država Južne Europe",
+       x= "Država",
+       y= "Srednja vrijednost") + 
+  scale_y_continuous(limits= c(0, 5), breaks= seq(0, 5, by= 0.5)) + 
+  theme(plot.title= element_text(hjust= 0.5),
+        legend.position = "none") + 
+  theme_minimal() + 
+  guides(fill= "none")
+
+## Sjeverna
+meanstflife_sjeverna<- sjeverna %>% 
+  group_by(cntry) %>% 
+  summarise(stflife_mean= mean(as.integer(stflife)), na.rm= T)
+
+ggplot(data= meanstflife_sjeverna, aes(x= cntry, y= stflife_mean, fill= cntry)) +
+geom_bar(stat= "identity") + 
+  labs(title= "Srednja vrijednost razine životnoga zadovoljstva ispitanika država Sjeverna",
+       x= "Država",
+       y= "Srednja vrijednost") + 
+  scale_y_continuous(limits= c(0, 5), breaks= seq(0, 5, by= 0.5)) + 
+  theme(plot.title= element_text(hjust= 0.5),
+        legend.position = "none") + 
+  theme_minimal() + 
+  guides(fill= "none")
+
+# PROSJEČNA RAZINA ŽIVOTNOGA ZADOVOLJSTVA ZA SVAKU DRŽAVU
+mean_stflife<- ajmo %>% 
+  group_by(cntry) %>% 
+  summarise(mean_stflife<- mean(as.integer(stflife), na.rm= T)) 
+ 
+ggplot(mean_stflife, aes(x= cntry, y= mean_stflife$`mean_stflife <- mean(as.integer(stflife), na.rm = T)`, fill= cntry)) + 
+  geom_bar(stat= "identity") + 
+  labs(title= "Prosječna razina životnoga zadovoljstva ispitanika svake države",
+         x= "Država", y= "Srednja vrijednost") +
+    theme(plot.title = element_text(hjust= 0.5), 
+          legend.position= "none") + 
+      theme_minimal()
+
+# Dodavanje varijable regija da bi napravil barplot kolko ima ispitanika iz svake regije
+regije<- vector(length= nrow(ajmo))
+for(i in 1:nrow(ajmo)){
+  drzava<- ajmo$cntry[i]
+  if(drzava== "Belgija" || drzava== "Francuska" || drzava== "Švicarska" || drzava== "Irska" || drzava== "V.Britanija" || drzava== "Nizozemska"){
+    regije[i]<- "Zapadna Europa"
+  } else if (drzava== "Grčka" || drzava== "Italija"){
+    regije[i]<- "Južna Europa"
+  } else if (drzava== "Norveška" || drzava== "Island" || drzava== "Finska" || drzava== "Estonija"){
+    regije[i]<- "Sjeverna Europa"
+  } else{
+    regije[i]<- "Srednjoistočna Europa"
+  }
+  ajmo$regije<- regije
+}
+
+# FREKVENCIJA BROJA ISPITANIKA ZA SVAKU OD GEOGRAFSKIH CJELINA
+ggplot(data= ajmo, aes(x= regije, fill= regije)) + 
+  geom_bar() + 
+  labs(title= "Frekvencija broja ispitanika po geografskim cjelinama",
+        y= "Frekvencija ispitanika",
+        x= "Geografska cjelina") + 
+  scale_y_continuous(limits= c(0, 18000), 
+                     breaks= seq(0, 18000, by= 1000)) +
+  theme_minimal() +
+  theme(plot.title= element_text(hjust= 0.5),
+        legend.position = "none",
+        axis.text.y = element_text(size= 10))
+
+# SREDNJA VRIJEDNOST RAZINE ŽIVOTNOG ZADOVOLJSTVA ZA SVAKU OD GEOGRAFSKIH CJELINA
+stf_regije_mean<- ajmo %>% group_by(regije) %>% summarize(stf_mean= (mean(as.integer(stflife))))
+
+ggplot(data= stf_regije_mean, aes(x=regije, y=stf_mean, fill= regije)) +
+  geom_bar(stat= "identity") +
+  labs(title= "Prosječno zadovoljstvo životom po geografskim cjelinama",
+       x= "Geografske cjeline",
+       y= "Razina životnoga zadovoljstva") + 
+  scale_y_continuous(limits= c(0, 5), 
+                     breaks= seq(0, 5, by= 0.5)) +
+  theme_minimal() + 
+  theme(plot.title= element_text(hjust= 0.5),
+        legend.position= "none",
+        axis.title.y= element_text(size= 12))
+
+# RANDOM FOREST ANALIZA
+# Zapadna
+oob_zapadna_train<- vector(length= 20)
+
+for (i in 1:20){
+  zapadna_train<- ranger(
+    stflife ~ ., 
+    data= train.zapadna[, -1],
+    mtry= i,
+    num.trees= 1000, 
+    seed = 380,
+    importance = "impurity",
+  )
+  oob_zapadna_train[i]<- zapadna_train$prediction.error
+} # znači, sve može ići u for petlju
+
+# seed je 380
+# oob_zapadna_train<- c(0.4909910, 0.4746816, 0.4763902, 0.4749922, 0.4723517, 
+                        # 0.4690898, 0.4723517, 0.4714197, 0.4767008 0.4709537 ,
+                        # 0.4737496 0.4737496 0.4734390 0.4717304 0.4742156 0.4735943,
+                        # 0.4743709 0.4709537 0.4732836 0.4782541)
+
+# probati s rangerom zato kaj u sebi ima ugrađenu seed funkciju
+optimal_zapadna_train<- ranger(stflife~.,
+                                     data= train.zapadna[, -1],
+                                     mtry= 11,
+                                     num.tree= 1000,
+                                     seed= 380, # sad je isti rezultati ko i gore s for petljom,
+                                     importance= "impurity",
+                                     verbose= T)
+
+emp_error<- mean(predict(optimal_zapadna_train, train.zapadna) != train.zapadna$stflife)
+
+min_depth_frame <- min_depth_distribution(optimal_zapadna_train)
+save(min_depth_frame, file = "min_depth_frame.rda")
+
+emperror_zapadna<- mean(predict(optimal_zapadna_train, train.zapadna) != train.zapadna$stflife)
+testerror_zapadna<- mean(predict(optimal_zapadna_train, test.zapadna) != test.zapadna$stflife)
+
+
+
+
+
+
+
+
+# Sredistočna
+
+oob_sredist_train<- vector(length= 20)
+for (i in 1:20){
+  Sys.setenv(R_RANDOM_SEED = 380)
+  sredist_train<- randomForest(
+    stflife ~ ., 
+    data= train.zapadna[, -1],
+    mtry= i,
+    ntree= 500
+  )
+  oob_sredist_train[i]<- sredist_train$err.rate[nrow(sredist_train$err.rate), 1]
+} # znači, sve može ići u for petlju
+
+optimal_sredistocna_train<- randomForest(stflife~., 
+                                         data= train.zapadna[, -1],
+                                         mtry= which.min(oob_sredist_train),
+                                         ntree= 500,
+                                         do.trace= 50,
+                                         importance= T)
+
+emperror_sredistocna<- mean(predict(optimal_sredistocna_train, train.sredist) != train.sredist$stflife)
+testerror_sredistocna<- mean(predict(optimal_sredistocna_train, test.sredist) != test.sredist$stflife)
+
+# Južna
+set.seed(380)
+oob_juzna_train<- vector(length= 20)
+for (i in 1:20){
+  juzna_train<- randomForest(stflife~., 
+                             data= train.juzna,
+                             mtry= i,
+                             ntree= 500)
+  oob_juzna_train<- juzna_train$err.rate[nrow(juzna_train$err.rate), 1]
+  bestmtry_juzna_train<- which.min(oob_juzna_train)
+  print(oob_juzna_train)
+}
+
+optimal_juzna_train<- randomForest(stflife~., 
+                                   data= juzna_train,
+                                   mtry= optimal_juzna_train,
+                                   ntree= 500,
+                                   do.trace= 50)
+
+emperror_juzna<- mean(predict(optimal_juzna_train, train.juzna) != train.juzna$stflife)
+testerror_juzna<- mean(predict(optimal_juzna_train, test.juzna) != test.juzna$stflife)
+
+# Sjeverna
+set.seed(380)
+oob_sjeverna_train<- vector(length= 20)
+for (i in 1:20){
+  sjeverna_train<- randomForest(stflife~., 
+                             data= train.sjeverna,
+                             mtry= i,
+                             ntree= 500)
+  oob_sjeverna_train<- sjeverna_train$prediction.error
+  bestmtry_sjeverna_train<- which.min(oob_sjeverna_train)
+  print(oob_sjeverna_train)
+}
+
+optimal_sjeverna_train<- randomForest(stflife~., 
+                                   data=sjeverna_train,
+                                   mtry= bestmtry_sjeverna_train,
+                                   ntree= 500,
+                                   do.trace= 50)
+
+emperror_sjeverna<- mean(predict(optimal_sjeverna_train, train.sjeverna) != train.sjeverna$stflife)
+testerror_sjeverna<- mean(predict(optimal_sjeverna_train, test.sjeverna) != test.sjeverna$stflife)  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
