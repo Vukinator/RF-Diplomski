@@ -230,6 +230,8 @@ ajmo<- data.frame(cntry, bdp.prihodi, stflife, health, hhmmb,
                   rlgdnm, pray, rlgatnd, stfmjob, wkhtot,
                   eisced ,hinctnta ,gndr ,agea)
 
+summary(ajmo)
+
 # REGIJE
 be<- subset(ajmo, cntry== "Belgija")
 hr<- subset(ajmo, cntry== "Hrvatska")
