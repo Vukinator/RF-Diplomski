@@ -230,8 +230,6 @@ ajmo<- data.frame(cntry, bdp.prihodi, stflife, health, hhmmb,
                   rlgdnm, pray, rlgatnd, stfmjob, wkhtot,
                   eisced ,hinctnta ,gndr ,agea)
 
-summary(ajmo)
-
 # REGIJE
 be<- subset(ajmo, cntry== "Belgija")
 hr<- subset(ajmo, cntry== "Hrvatska")
@@ -268,24 +266,10 @@ train.zapadna<- zapadna[index.zapadna == 1, ]
 test.zapadna<- zapadna[index.zapadna == 2, ]
 val.zapadna<- zapadna[index.zapadna== 3, ]
 
-#Tezina klasa, zapadna; izračun težina prema obrnutoj frekvenciji (one kojih je najmanje su najviše penalizirane)
-distribucija_klasa_zapadna<- table(zapadna$stflife)
-zapadna_tezine_obrnuto<- 1/distribucija_klasa_zapadna; # težina svake klase obrnuto
-zapadna_tezine_obrnuto<- zapadna_tezine/sum(zapadna_tezine) # normalizacija težina
-
-zapadna_tezine<- distribucija_klasa_zapadna/sum(distribucija_klasa_zapadna)
-
-
-
 index.sredist<- sample(1:3, size=nrow(istocna), replace= T, prob= c(0.7, 0.2, 0.1))
 train.sredist<- istocna[index.sredist== 1, ]
 test.sredist<- istocna[index.sredist== 2, ]
 val.sredist<- istocna[index.sredist== 3, ]
-
-# Tezina klasa, juzna:
-distribucija_klasa_zapadna<- table(juzna$stflife)
-juzna_tezine<- 1/distribucija_klasa; # težina svake klase
-juzna_tezine<- juzna_tezine/sum(juzna_tezine) # normalizacija težina
 
 index.juzna<- sample(1:3, size=nrow(juzna), replace= T, prob= c(0.7, 0.2, 0.1))
 train.juzna<- juzna[index.juzna== 1, ]
@@ -431,160 +415,143 @@ ggplot(data= stf_regije_mean, aes(x=regije, y=stf_mean, fill= regije)) +
         axis.title.y= element_text(size= 12))
 
 # RANDOM FOREST ANALIZA
-# Zapadna
-## table(train.zapadna$stflife) / sum(nrow(train.zapadna)) - ovo iskoristiti za dodavanje težina (pogledaj kaj imaš na CHATGPT-u)
-oob_zapadna_train<- vector(length= 20)
-for (i in 1:20){
-  set.seed(380)
-  zapadna_train<- randomForest(
-    stflife ~ ., 
-    data= train.zapadna[, -1],
-    mtry= i,
-    ntree= 1000,
-    classwt= zapadna_tezine
-  )
-  oob_zapadna_train[i]<- zapadna_train$err.rate[nrow(zapadna_train$err.rate), 1]
-} # znači, sve može ići u for petlju
-
-# OBAVEZNO ISKOPIRATI REZULTAT OOB_ZAPADNA_TRAIN
-## oob_zapadna_train[i]<- 
-
-
-
-
-
-
-seed380_zapadna<- function(data, target_column, seed, ntree, mtry){
+## Funkcija za analizu
+randomForest_seed380<- function(data, target_column, seed, ntree, mtry, nodesize, strata= NULL, classwt= NULL){
   set.seed(seed)
   criteria<- data[[target_column]]
   predictors<- data[, !(names(data) %in% target_column)]
-  zapadna_optimal<- randomForest(x= predictors,
-                                 y= criteria,
-                                 ntree= ntree,
-                                 mtry= mtry
-                                              ) 
-  }
-zapadna_model<- seed380_zapadna(data= train.zapadna,
-                                target_column= "stflife",
-                                seed= 380,
-                                ntree= 500,
-                                mtry= which.min(oob_zapadna_train) #7
-                                )
+  optimal<- randomForest(x= predictors,
+                         y= criteria,
+                         ntree= ntree,
+                         mtry= mtry,
+                         nodesize= nodesize,
+                         strata= strata,
+                         classwt= classwt
+  )
+}
 
-emperror_zapadna<- mean(predict(zapadna_model, train.zapadna) != train.zapadna$stflife)
-testerror_zapadna<- mean(predict(zapadna_model, test.zapadna) != test.zapadna$stflife)
-valerror_zapadna<- mean(predict(zapadna_model, val.zapadna) != val.zapadna$stflife)
+
+# Zapadna
+nodesize<- seq(50, 150, by= 10)
+mtrys<- 1:20
+rezultati_zapadna<- matrix(NA,
+                           nrow = length(nodesizes),
+                           ncol = length(mtrys),
+                           dimnames = list(paste0("nodesize ", nodesizes),
+                                           paste0("mtry ", mtrys)))
+for (i in seq_along(mtrys)){
+  for (j in seq_along(nodesizes)){
+    set.seed(380)
+    model<- randomForest(stflife~., 
+                         data= train.zapadna[, -1],
+                         mtry= mtrys[i],
+                         nodesize= nodesizes[j],
+                         ntree= 500)
+    rezultati_zapadna[j, i]<- model$err.rate[nrow(model$err.rate), 1]
+  }
+}
+
+oob_error_zapadna<- which(rezultati_zapadna == min(rezultati_zapadna), arr.ind= T)
+najmanji_indeksi<- order(rezultati_zapadna, decreasing= F) [1:10]
+najmanje_vrijednosti<- rezultati_zapadna[najmanji_indeksi]
+lokacije_najmanjih<- arrayInd(najmanji_indeksi, dim(rezultati_zapadna))
+najjednostavniji_najmanji<- lokacije_najmanjih[7,] # 4, 9
+
+zapadna_optimal<- randomForest_seed380(
+  data= train.zapadna[, -1],
+  target_column = "stflife",
+  seed= 380,
+  ntree= 500,
+  mtry= 9,
+  nodesize= 53
+)
+
+emperror_zapadna<- mean(predict(zapadna_optimal, train.zapadna) != train.zapadna$stflife) 
+testerror_zapadna<- mean(predict(zapadna_optimal, test.zapadna) != test.zapadna$stflife) 
+valerror_zapadna<- mean(predict(zapadna_optimal, val.zapadna) != val.zapadna$stflife) 
 
 # Sredistočna
-oob_sredist_train<- vector(length= 20)
-for (i in 1:20){
-  set.seed(380)
-  sredist_train<- randomForest(
-    stflife ~ ., 
-    data= train.sredist[, -1],
-    mtry= i,
-    ntree= 500
-  )
-  oob_sredist_train[i]<- sredist_train$err.rate[nrow(sredist_train$err.rate), 1]
-}
-# OBAVEZNO ISKOPIRATI REZULTAT OOB_SREDIST_TRAIN
-## 
+nodesize<- seq(50, 150, by= 10)
+mtrys<- 1:20
+rezultati_sredistocna<- matrix(data= NA,nrow= length(mtrys_sredistocna),
+                               ncol= length(nodesizes_sredistocna),
+                               dimnames = list(paste0("node ", mtrys_sredistocna),
+                                               paste0("mtrys ", nodesizes_sredistocna)))
 
-seed380_sredist<- function(data, target_column, seed, ntree, mtry){
-  set.seed(seed)
-  criteria<- data[[target_column]]
-  predictors<- data[, !(names(data) %in% target_column)]
-  zapadna_optimal<- randomForest(x= predictors,
-                                 y= criteria,
-                                 ntree= ntree,
-                                 mtry= mtry)
+for (i in seq_along(mtrys)){
+  for (j in seq_along(nodesize)){
+    sredistocna_model= randomForest(
+      stflife~.,
+      data= train.sredist[, -1],
+      mtry= mtrys[]
+    )
   }
+}
+    
 
-sredist_model<- seed380_sredist(data= train.sred,
-                                target_column = "stflife",
-                                seed= 380,
-                                ntree= 500,
-                                mtry= which.min(oob_sredist_train) # 
-                                )
+minoob_error_sredistocna<- which(rezultati_sredistocna == min(rezultati_sredistocna), arr.ind= T)
+najmanji_indeksi_sredistocna<- order(rezultati_sredistocna, decreasing= F)[1:10]
+lokacije_najmanje_vrijednosti_sredistocna<- rezultati_sredistocna[najmanji_indeksi]
+lokacije_najmanjih_sredistocna<- arrayInd(najmanji_indeksi_sredist, dim(rezultati_sredistocna))
+najjednostavniji_najmanji_sredistocna<- lokacije_najmanjih_sredistocna[]
 
-emperror_sredistocna<- mean(predict(sredist_model, train.sredist) != train.sredist$stflife)
-testerror_sredistocna<- mean(predict(sredist_model, test.sredist) != test.sredist$stflife)
+emperror_sredistocna<- mean(predict(sredistocna_model, train.sredist) != train.sredist$stflife)
+testerror_sredistocna<- mean(predict(sredistocna_model, test.sredist) != test.sredist$stflife)
+valerror_sredistocna<- mean(predict(sredistocna_model, val.sredist) != val.sredist$stflife)
 
 # Južna
-oob_juzna_train<- vector(length= 20)
-for (i in 1:20){
-  set.seed(380)
-  juzna_train<- randomForest(stflife~., 
-                             data= train.juzna,
-                             mtry= i,
-                             ntree= 500)
-  oob_juzna_train[i]<- juzna_train$err.rate[nrow(juzna_train$err.rate), 1]
+rezultati_juzna<- matrix(data= NA, nrow= length(mtrys), ncol= length(nodesize),
+                         dimnames= list(paste0("mtrys_juzna ", mtrys), 
+                                        paste0("nodesize ", nodesize)))
+for (i in mtrys){
+  for (j in nodesize){
+    set.seed(380)
+    juzna_model<- randomForest(
+      stflife~.,
+      data= train.juzna[, -1],
+      ntree= 500, 
+      mtry= mtrys_[i]
+      nodesize= nodesize[j])
+    rezultati_juzna[i, j]<- juzna_model$err.rate[nrow(juzna_model$err.rate), 1]
+    )
+  }
 }
 
-# OBAVEZNO ISKOPIRATI REZULTAT OOB_JUZNA_TRAIN
-##
-
-seed380_juzna<- function(data, target_column, seed, ntree, mtry){
-  set.seed(seed)
-  criteria<- data[[target_column]]
-  predictors<- data[, !(names(data) %in% target_column)]
-  zapadna_optimal<- randomForest(x= predictors,
-                                 y= criteria,
-                                 ntree= ntree,
-                                 mtry= mtry)
-}
-
-juzna_model<- seed380_juzna(data= train.juzna,
-                            target_column = "stflife",
-                            seed= 380,
-                            ntree= 500,
-                            mtry= which.min(oob_juzna_train) # 
-)
+minoob_error_juzna<- which(rezultati_juzna == min(rezultati_juzna), arr.ind= T)
+najmanji_indeksi_juzna<- order(rezultati_juzna, decreasing= F)[1:10]
+lokacije_najmanje_vrijednosti_juzna<- rezultati_juzna[najmanji_indeksi_juzna]
+najjednostavniji_najmanji_juzna<- lokacije_najmanje_vrijednosti_juzna[]
 
 emperror_juzna<- mean(predict(juzna_model, train.juzna) != train.juzna$stflife)
 testerror_juzna<- mean(predict(juzna_model, test.juzna) != test.juzna$stflife)
+valerror_juzna<- mean(predict(juzna_model, val.juzna) != val.juzna$stflife)
 
 # Sjeverna
-oob_sjeverna_train<- vector(length= 20)
-for (i in 1:20){
-  set.seed(380)
-  sjeverna_train<- randomForest(stflife~., 
-                                data= train.sjeverna,
-                                mtry= i,
-                                ntree= 500)
-  oob_sjeverna_train[i]<- sjeverna_train$err.rate(nrow(sjeverna_train$err.rate), 1)
-}
-# OBAVEZNO ISKOPIRATI OOB_SJEVERNA_TRAIN
-##
+rezultati_sjeverna<- matrix(data= NA, nrow= length(mtrys), ncol= length(nodesize),
+                            dimnames= list(paste0("mtrys ", mtrys),
+                                           paste0("nodesize ", nodesize)))
 
-seed380_sjeverna<- function(data, target_column, seed, ntree, mtry){
-  set.seed(seed)
-  criteria<- data[[target_column]]
-  predictors<- data[, !(names(data) %in% target_column)]
-  zapadna_optimal<- randomForest(x= predictors,
-                                 y= criteria,
-                                 ntree= ntree,
-                                 mtry= mtry)
+for (i in mtrys){
+  for (j in nodesize){
+    set.seed(380)
+    sjeverna_model<- randomForest(
+      stflife~.,
+      data= train.sjeverna[, -1],
+      ntree= 500, 
+      mtry= mtrys_[i]
+      nodesize= nodesize[j]
+    rezultati_sjeverna[i, j]<- sjeverna_model$err.rate[nrow(sjeverna_model$err.rate), 1])
+  }
 }
 
-sjeverna_model<- seed380_sjeverna(data= train.sjeverna,
-                                  target_column= "stflife",
-                                  seed= 380,
-                                  ntree= 500,
-                                  mtry= which.min(oob_sjeverna_train)
+minoob_error_sjeverna<- which(rezultati_sjeverna == min(rezultati_sjeverna), arr.ind= T)
+najmanji_indeksi_sjeverna<- order(rezultati_sjeverna, decreasing= F)[1:10]
+lokacije_najmanje_vrijednosti_sjeverna<- rezultati_sjeverna[najmanji_indeksi_sjeverna]
+najjednostavniji_najmanji_juzna<- lokacije_najmanje_vrijednosti_sjeverna[]
 
 emperror_sjeverna<- mean(predict(sjeverna_model, train.sjeverna) != train.sjeverna$stflife)
-testerror_sjeverna<- mean(predict(sjeverna_model, test.sjeverna) != test.sjeverna$stflife)  
-
-
-# Navesti da je svaka geografska cjelina podijeljena na skup za treniranje i skup za testiranje
-# Skup za treniranje čini 80% ukupnih podataka svake geografske cjeline, a skup za testiranje 20%.
-# To znači da će u radu postojati 4 modela ansambla stabala odluke, svaki za jednu geografsku cjelinu.
-# 
-
-
-
-
+testerror_sjeverna<- mean(predict(sjeverna_mdoel, test.sjeverna) != test.sjeverna$stflife)
+valerror_sjeverna<- mean(predict(sjeverna_model, val.sjeverna) != val.sjeverna$stflife)
 
 
 
