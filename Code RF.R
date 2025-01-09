@@ -471,12 +471,10 @@ testerror_zapadna<- mean(predict(zapadna_optimal, test.zapadna) != test.zapadna$
 valerror_zapadna<- mean(predict(zapadna_optimal, val.zapadna) != val.zapadna$stflife) 
 
 # Sredistočna
-nodesize<- seq(50, 150, by= 10)
-mtrys<- 1:20
 rezultati_sredistocna<- matrix(data= NA,nrow= length(mtrys_sredistocna),
                                ncol= length(nodesizes_sredistocna),
-                               dimnames = list(paste0("node ", mtrys_sredistocna),
-                                               paste0("mtrys ", nodesizes_sredistocna)))
+                               dimnames = list(paste0("node ", nodesize),
+                                               paste0("mtrys ", mtrys)))
 
 for (i in seq_along(mtrys)){
   for (j in seq_along(nodesize)){
@@ -552,6 +550,10 @@ najjednostavniji_najmanji_juzna<- lokacije_najmanje_vrijednosti_sjeverna[]
 emperror_sjeverna<- mean(predict(sjeverna_model, train.sjeverna) != train.sjeverna$stflife)
 testerror_sjeverna<- mean(predict(sjeverna_mdoel, test.sjeverna) != test.sjeverna$stflife)
 valerror_sjeverna<- mean(predict(sjeverna_model, val.sjeverna) != val.sjeverna$stflife)
+
+
+
+
 
 
 
